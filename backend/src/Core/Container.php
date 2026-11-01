@@ -23,6 +23,12 @@ class Container
         self::$instance = $container;
     }
 
+    public function flush(): void
+    {
+        $this->bindings = [];
+        $this->instances = [];
+    }
+
     public function bind(string $abstract, mixed $concrete = null): void
     {
         if ($concrete === null) {

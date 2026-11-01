@@ -250,5 +250,33 @@ class BatchRepository
 
         return ['total' => $total, 'items' => $items];
     }
+
+    public function expiringWithin(int $days = 30): array
+    {
+        $today = date('Y-m-d');
+        $targetDate = date('Y-m-d', strtotime("+{$days} days"));
+
+        $sql = "SELECT b.*, m.name as medicine_name, m.slug as medicine_slug
+                FROM batches b
+                JOIN medicines m ON b.medicine_id = m.id
+                WHERE m.deleted_at IS NULL AND b.exp_date >= ? AND b.exp_date <= ?
+                  AND b.disposal_status = 'none'
+                ORDER BY b.exp_date ASC, b.id ASC";
+
+        return $this->db->fetchAll($sql, [$today, $targetDate]);
+    }
+
+    public function expired(): array
+    {
+        $today = date('Y-m-d');
+
+        $sql = "SELECT b.*, m.name as medicine_name, m.slug as medicine_slug
+                FROM batches b
+                JOIN medicines m ON b.medicine_id = m.id
+                WHERE m.deleted_at IS NULL AND b.exp_date < ?
+                ORDER BY b.exp_date DESC, b.id DESC";
+
+        return $this->db->fetchAll($sql, [$today]);
+    }
 }
 

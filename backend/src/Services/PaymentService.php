@@ -270,6 +270,24 @@ class PaymentService
                     if ($p) {
                         $this->paymentRepo->updateStatus((int)$p['id'], 'failed', $paymentEntity);
                         $this->orderRepo->updatePaymentStatus((int)$p['order_id'], 'failed');
+
+                        try {
+                            $container = \MediTrack\Core\Container::getInstance();
+                            if ($container->has(NotificationService::class)) {
+                                $order = $this->orderRepo->findById((int)$p['order_id']);
+                                if ($order) {
+                                    $container->get(NotificationService::class)->notifyUser(
+                                        (int)$order['user_id'],
+                                        'payment_failed',
+                                        'Payment Failed',
+                                        "Payment for order #{$order['order_no']} failed. Tap to retry payment.",
+                                        ['screen' => 'checkout', 'order_id' => (int)$order['id']]
+                                    );
+                                }
+                            }
+                        } catch (\Throwable) {
+                            // Non-fatal
+                        }
                     }
                 }
             } elseif ($event === 'refund.processed') {

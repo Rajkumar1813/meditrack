@@ -115,6 +115,37 @@ class StockService
 
             $this->cache->bumpVersion('catalog');
 
+            // Check low stock trigger
+            try {
+                $container = \MediTrack\Core\Container::getInstance();
+                if ($container->has(NotificationService::class)) {
+                    $stockRow = $this->db->fetchOne(
+                        'SELECT SUM(quantity - reserved_quantity) as total_left FROM batches WHERE medicine_id = ? AND exp_date > ? AND disposal_status = "none"',
+                        [$medicineId, date('Y-m-d')]
+                    );
+                    $totalLeft = (int)($stockRow['total_left'] ?? 0);
+
+                    $threshold = 10;
+                    if ($container->has(\MediTrack\Repositories\SettingRepository::class)) {
+                        $threshold = (int)$container->get(\MediTrack\Repositories\SettingRepository::class)->get('low_stock_threshold', 10);
+                    }
+
+                    if ($totalLeft <= $threshold) {
+                        $med = $this->medicineRepo->findById($medicineId);
+                        $medName = $med['name'] ?? 'Medicine';
+                        $container->get(NotificationService::class)->notifyRole(
+                            'admin',
+                            'low_stock',
+                            "Low Stock Alert: {$medName}",
+                            "Only {$totalLeft} units remaining for {$medName} (Threshold: {$threshold}).",
+                            ['screen' => 'admin_inventory', 'medicine_id' => $medicineId, 'remaining_stock' => $totalLeft]
+                        );
+                    }
+                }
+            } catch (\Throwable) {
+                // Non-fatal
+            }
+
             return $allocations;
         });
     }

@@ -180,17 +180,21 @@ class PrescriptionService
         }
 
         // 4. Notify all registered pharmacists & admins of new Rx
-        $pharmacists = $this->db->fetchAll(
-            'SELECT id FROM users WHERE role IN ("pharmacist", "admin") AND is_active = 1'
-        );
-        foreach ($pharmacists as $ph) {
-            $this->notificationRepo->create(
-                (int)$ph['id'],
-                'rx_review',
-                'New Prescription Uploaded',
-                "Customer has uploaded a new prescription (#{$prescriptionId}) for review.",
-                ['prescription_id' => $prescriptionId, 'order_id' => $orderId]
+        try {
+            $pharmacists = $this->db->fetchAll(
+                'SELECT id FROM users WHERE role IN ("pharmacist", "admin")'
             );
+            foreach ($pharmacists as $ph) {
+                $this->notificationRepo->create(
+                    (int)$ph['id'],
+                    'rx_review',
+                    'New Prescription Uploaded',
+                    "Customer has uploaded a new prescription (#{$prescriptionId}) for review.",
+                    ['screen' => 'admin_rx_review', 'prescription_id' => $prescriptionId, 'order_id' => $orderId]
+                );
+            }
+        } catch (\Throwable) {
+            // Non-fatal
         }
 
         return $this->getPrescriptionWithSignedUrls($prescriptionId);
@@ -328,21 +332,17 @@ class PrescriptionService
             // Notify customer of review result
             $customerId = (int)$prescription['user_id'];
             if ($status === 'approved') {
-                $this->notificationRepo->create(
-                    $customerId,
-                    'rx_review',
-                    'Prescription Approved',
-                    "Your prescription #{$prescriptionId} was approved by pharmacist {$pharmacist['name']} and is valid until {$validUntil}.",
-                    ['prescription_id' => $prescriptionId, 'status' => 'approved', 'order_id' => $orderId]
-                );
+                $title = 'Prescription Approved';
+                $body = "Your prescription #{$prescriptionId} was approved by pharmacist {$pharmacist['name']} and is valid until {$validUntil}.";
+                $data = ['screen' => 'rx_detail', 'prescription_id' => $prescriptionId, 'status' => 'approved', 'order_id' => $orderId];
+
+                $this->notificationRepo->create($customerId, 'rx_review', $title, $body, $data);
             } else {
-                $this->notificationRepo->create(
-                    $customerId,
-                    'rx_review',
-                    'Prescription Rejected',
-                    "Your prescription #{$prescriptionId} was rejected. Reason: {$rejectReason}",
-                    ['prescription_id' => $prescriptionId, 'status' => 'rejected', 'reject_reason' => $rejectReason, 'order_id' => $orderId]
-                );
+                $title = 'Prescription Rejected';
+                $body = "Your prescription #{$prescriptionId} was rejected. Reason: {$rejectReason}";
+                $data = ['screen' => 'rx_detail', 'prescription_id' => $prescriptionId, 'status' => 'rejected', 'reject_reason' => $rejectReason, 'order_id' => $orderId];
+
+                $this->notificationRepo->create($customerId, 'rx_review', $title, $body, $data);
             }
         });
 

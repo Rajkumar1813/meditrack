@@ -357,11 +357,23 @@ CREATE TABLE refill_reminders (
   source_order_id BIGINT UNSIGNED NULL,
   course_days SMALLINT UNSIGNED NOT NULL DEFAULT 30,
   remind_at DATE NOT NULL,
+  snoozed_until DATE NULL,
   status ENUM('active','sent','dismissed','ordered') NOT NULL DEFAULT 'active',
+  last_notified_at TIMESTAMP NULL,
   created_at TIMESTAMP NULL,
   INDEX idx_due (status, remind_at),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (medicine_id) REFERENCES medicines(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE user_notification_preferences (
+  user_id BIGINT UNSIGNED PRIMARY KEY,
+  order_updates TINYINT(1) NOT NULL DEFAULT 1,
+  refill_reminders TINYINT(1) NOT NULL DEFAULT 1,
+  promotional_push TINYINT(1) NOT NULL DEFAULT 1,
+  stock_alerts TINYINT(1) NOT NULL DEFAULT 1,
+  updated_at TIMESTAMP NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ───────────── System ─────────────

@@ -30,6 +30,9 @@ use MediTrack\Controllers\Api\V1\OrderController;
 use MediTrack\Controllers\Api\V1\PrescriptionController;
 use MediTrack\Controllers\Api\V1\PaymentController;
 use MediTrack\Controllers\Api\V1\WebhookController;
+use MediTrack\Controllers\Api\V1\DeviceController;
+use MediTrack\Controllers\Api\V1\NotificationController;
+use MediTrack\Controllers\Api\V1\RefillController;
 use MediTrack\Middleware\ForceJson;
 use MediTrack\Middleware\Cors;
 use MediTrack\Middleware\SecurityHeaders;
@@ -132,6 +135,38 @@ $router->group([
 
     // Webhooks (Phase 7 - Rate limit & auth exempt; HMAC verified)
     $r->post('/webhooks/razorpay', [WebhookController::class, 'razorpay']);
+
+    // Devices (Phase 9)
+    $r->group([
+        'prefix' => '/devices',
+        'middleware' => [Auth::class, new RateLimit('authenticated')],
+    ], function (Router $dev) {
+        $dev->post('', [DeviceController::class, 'register']);
+        $dev->delete('', [DeviceController::class, 'unregister']);
+        $dev->delete('/{token}', [DeviceController::class, 'unregister']);
+    });
+
+    // Notifications (Phase 9)
+    $r->group([
+        'prefix' => '/notifications',
+        'middleware' => [Auth::class, new RateLimit('authenticated')],
+    ], function (Router $notif) {
+        $notif->get('', [NotificationController::class, 'index']);
+        $notif->post('/read', [NotificationController::class, 'markRead']);
+        $notif->get('/preferences', [NotificationController::class, 'getPreferences']);
+        $notif->put('/preferences', [NotificationController::class, 'updatePreferences']);
+    });
+
+    // Refill Reminders (Phase 9)
+    $r->group([
+        'prefix' => '/refills',
+        'middleware' => [Auth::class, new RateLimit('authenticated')],
+    ], function (Router $ref) {
+        $ref->get('', [RefillController::class, 'index']);
+        $ref->post('/{id:\d+}/snooze', [RefillController::class, 'snooze']);
+        $ref->post('/{id:\d+}/dismiss', [RefillController::class, 'dismiss']);
+        $ref->post('/{id:\d+}/reorder', [RefillController::class, 'reorder']);
+    });
 
     // Admin Inventory & Operations (Phase 4)
     $r->group([

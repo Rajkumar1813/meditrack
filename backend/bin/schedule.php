@@ -2,9 +2,19 @@
 
 declare(strict_types=1);
 
+namespace MediTrack\Bin;
+
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use Dotenv\Dotenv;
+use MediTrack\Core\Container;
+use MediTrack\Commands\Scheduler;
+use MediTrack\Commands\ExpireUnpaidOrdersCommand;
+use MediTrack\Commands\HourlyRefillReminderCommand;
+use MediTrack\Commands\DailyExpiryAlertCommand;
+use MediTrack\Commands\NightlyLowStockDigestCommand;
+use Predis\Client as RedisClient;
+use Monolog\Logger;
 
 $basePath = dirname(__DIR__);
 if (file_exists($basePath . '/.env')) {
@@ -14,27 +24,43 @@ if (file_exists($basePath . '/.env')) {
 /** @var \MediTrack\Core\Router $router */
 require_once $basePath . '/bootstrap/app.php';
 
-echo "[" . date('Y-m-d H:i:s') . "] Running MediTrack Scheduled Tasks...\n";
+echo "[" . date('Y-m-d H:i:s') . "] Starting MediTrack Scheduler...\n";
 
-// 1. Expire unpaid online orders (> 15 min) and restore stock
-try {
-    $container = \MediTrack\Core\Container::getInstance();
-    if ($container->has(\MediTrack\Services\OrderService::class)) {
-        /** @var \MediTrack\Services\OrderService $orderService */
-        $orderService = $container->get(\MediTrack\Services\OrderService::class);
-        $cancelled = $orderService->expireUnpaidOrders(15);
-        if ($cancelled > 0) {
-            echo "[" . date('Y-m-d H:i:s') . "] Expired {$cancelled} unpaid order(s) and restored reserved stock.\n";
-        }
-    }
-} catch (\Throwable $e) {
-    echo "[" . date('Y-m-d H:i:s') . "] Error running ExpireUnpaidOrders: " . $e->getMessage() . "\n";
+$container = Container::getInstance();
+$redis = $container->has(RedisClient::class) ? $container->get(RedisClient::class) : null;
+$logger = $container->has(Logger::class) ? $container->get(Logger::class) : null;
+
+$scheduler = new Scheduler($container, $redis, $logger);
+
+if ($container->has(\MediTrack\Services\OrderService::class)) {
+    $scheduler->register(new ExpireUnpaidOrdersCommand($container->get(\MediTrack\Services\OrderService::class)));
+}
+if ($container->has(\MediTrack\Services\RefillService::class)) {
+    $scheduler->register(new HourlyRefillReminderCommand($container->get(\MediTrack\Services\RefillService::class)));
+}
+if ($container->has(\MediTrack\Repositories\BatchRepository::class) && $container->has(\MediTrack\Services\NotificationService::class)) {
+    $scheduler->register(new DailyExpiryAlertCommand(
+        $container->get(\MediTrack\Repositories\BatchRepository::class),
+        $container->get(\MediTrack\Services\NotificationService::class)
+    ));
+}
+if (
+    $container->has(\MediTrack\Repositories\MedicineRepository::class) &&
+    $container->has(\MediTrack\Repositories\SettingRepository::class) &&
+    $container->has(\MediTrack\Services\NotificationService::class)
+) {
+    $scheduler->register(new NightlyLowStockDigestCommand(
+        $container->get(\MediTrack\Repositories\MedicineRepository::class),
+        $container->get(\MediTrack\Repositories\SettingRepository::class),
+        $container->get(\MediTrack\Services\NotificationService::class)
+    ));
 }
 
-// Future phases schedule:
-// - ExpiryAlert (daily 08:00)
-// - RefillReminder (hourly)
-// - LowStockDigest (nightly)
+$force = in_array('--force', $argv ?? [], true);
+$results = $scheduler->run(null, $force);
 
-echo "Scheduled tasks completed.\n";
+foreach ($results as $cmd => $res) {
+    echo " - [{$cmd}]: " . (is_string($res) ? $res : json_encode($res)) . "\n";
+}
 
+echo "[" . date('Y-m-d H:i:s') . "] Scheduler finished.\n";

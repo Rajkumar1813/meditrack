@@ -27,7 +27,7 @@ if (!$queue) {
 }
 
 // In production / docker, process jobs in loop with sleep/timeout
-$queues = ['default', 'notifications', 'invoices', 'imports'];
+$queues = ['default', 'notifications', 'push', 'invoices', 'imports'];
 
 while (true) {
     $jobHandled = false;

@@ -152,6 +152,32 @@ class OrderService
             $order['address_snapshot'] = json_decode($order['address_snapshot'], true);
         }
 
+        // 6. Notify store owners/pharmacists of new order
+        try {
+            $container = Container::getInstance();
+            if ($container->has(NotificationService::class)) {
+                /** @var NotificationService $notifService */
+                $notifService = $container->get(NotificationService::class);
+                $orderTotal = number_format((float)($order['total'] ?? 0), 2);
+                $notifService->notifyRole(
+                    'admin',
+                    'new_order',
+                    'New Order Placed',
+                    "New order #{$order['order_no']} placed for ₹{$orderTotal}.",
+                    ['screen' => 'admin_order_detail', 'order_id' => $orderId]
+                );
+                $notifService->notifyRole(
+                    'pharmacist',
+                    'new_order',
+                    'New Order Placed',
+                    "New order #{$order['order_no']} placed for ₹{$orderTotal}.",
+                    ['screen' => 'admin_order_detail', 'order_id' => $orderId]
+                );
+            }
+        } catch (\Throwable) {
+            // Non-fatal
+        }
+
         return $order;
     }
 

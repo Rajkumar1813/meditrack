@@ -11,7 +11,7 @@
 [![MySQL 8](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-6.x%2F7.x-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/)
 [![Flutter](https://img.shields.io/badge/Flutter-Ready-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/)
-[![Tests Passing](https://img.shields.io/badge/Tests-167%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
+[![Tests Passing](https://img.shields.io/badge/Tests-188%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-blue.svg)](#)
 
 </div>
@@ -29,6 +29,7 @@
   - [4. Payment & Webhook Idempotency](#4-payment--webhook-idempotency)
   - [5. Concurrency-Safe GST Invoicing](#5-concurrency-safe-gst-invoicing)
   - [6. DPDP Act 2023 Customer Management](#6-dpdp-act-2023-customer-management)
+  - [7. Push Notifications, Refill Reminders & Distributed Scheduler](#7-push-notifications-refill-reminders--distributed-scheduler)
 - [Complete API Reference (`/api/v1`)](#-complete-api-reference-apiv1)
 - [Directory Structure](#-directory-structure)
 - [Getting Started & Local Setup](#-getting-started--local-setup)
@@ -211,6 +212,28 @@ When an order reaches `CONFIRMED`:
 
 ---
 
+### 7. Push Notifications, Refill Reminders & Distributed Scheduler
+MediTrack integrates background push notifications, intelligent refill cycles, and automated cron tasks.
+
+```mermaid
+flowchart TD
+    A["Order DELIVERED"] --> B["Calculate Course Days & Remind At: delivered + course_days - 3"]
+    B --> C[("refill_reminders table")]
+    C --> D["HourlyRefillReminderCommand via bin/schedule.php"]
+    D --> E{"Check user_notification_preferences"}
+    E -- Allowed --> F["SendPushJob via Redis Queue"]
+    F --> G["Firebase Cloud Messaging FCM API"]
+    G -- Invalid / Unregistered Token --> H["Auto-cleanup from device_tokens"]
+    G -- Success --> I["Customer Receives Push with 1-Tap Reorder Action"]
+```
+
+- **FCM Push Service**: Uses Firebase Cloud Messaging (`kreait/firebase-php`). Detects unregistered or defunct tokens (`NotFound`, `InvalidMessage`) and purges them automatically.
+- **In-App Notifications**: Cursor-paginated notification inbox (`GET /api/v1/notifications`) supporting unread counts and batch mark-read.
+- **Refill Reminders**: Delivers proactive refill alerts 3 days prior to running out (`remind_at = delivered + course_days - 3`), with 1-tap reorder that instantly loads medication into the active cart.
+- **Distributed Scheduler**: `bin/schedule.php` uses Redis `SET NX` distributed mutex locks (`schedule:lock:{command}:{slot}`) with 5-minute to 24-hour TTLs to prevent double-runs across multiple server nodes.
+
+---
+
 ## 📡 Complete API Reference (`/api/v1`)
 
 ### 🔑 Authentication & Profile
@@ -268,6 +291,34 @@ When an order reaches `CONFIRMED`:
 | `POST` | `/api/v1/payments/create` | Initialize Razorpay gateway order | Bearer |
 | `POST` | `/api/v1/payments/verify` | Verify payment signature & capture order | Bearer |
 | `POST` | `/api/v1/webhooks/razorpay` | Razorpay webhook (Signature validated with secret) | Webhook Signature |
+
+### 🔔 Notifications & Device Tokens
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/api/v1/devices` | Register FCM push device token (with platform & device info) | Bearer |
+| `DELETE`| `/api/v1/devices/{token}` | Unregister specific device token on logout | Bearer |
+| `DELETE`| `/api/v1/devices` | Unregister all device tokens for user | Bearer |
+| `GET` | `/api/v1/notifications` | In-app notification inbox (Cursor-based pagination) | Bearer |
+| `POST` | `/api/v1/notifications/read` | Mark single notification (`notification_id`) or all read | Bearer |
+| `GET` | `/api/v1/notifications/preferences` | Retrieve user notification preferences | Bearer |
+| `PUT` | `/api/v1/notifications/preferences` | Update push preferences (orders, refills, promo, stock)| Bearer |
+
+### 💊 Refill Reminders
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/v1/refills` | List active medicine refill reminders with pricing & batch data | Bearer |
+| `POST` | `/api/v1/refills/{id}/snooze` | Snooze reminder by specified days (e.g. 7 days) | Bearer (Owner Only) |
+| `POST` | `/api/v1/refills/{id}/dismiss`| Dismiss refill reminder | Bearer (Owner Only) |
+| `POST` | `/api/v1/refills/{id}/reorder` | 1-Tap reorder: adds prescribed item into active cart | Bearer (Owner Only) |
+
+### ⏰ Background Scheduler Commands (`bin/schedule.php`)
+Managed via cron or process manager with Redis `SET NX` distributed concurrency locks:
+| Frequency | Command | Description |
+|---|---|---|
+| Every 5 min | `ExpireUnpaidOrdersCommand` | Auto-cancels unpaid Razorpay orders > 15 min and restores FEFO stock |
+| Hourly | `HourlyRefillReminderCommand` | Scans due refill reminders and queues push notifications |
+| Daily 08:00 | `DailyExpiryAlertCommand` | Scans batches expiring in ≤30 days and notifies pharmacists/admins |
+| Nightly 22:00 | `NightlyLowStockDigestCommand` | Generates consolidated low-stock alert digest for pharmacy owners |
 
 ### 🛡 Admin Operations & DPDP
 | Method | Endpoint | Description | Required Role |
@@ -430,13 +481,13 @@ docker compose up -d
 The project includes exhaustive automated test suites covering Unit, Integration, Feature, and Security scenarios.
 
 ### Backend PHPUnit Tests
-Runs all 167 tests against an in-memory SQLite isolated environment:
+Runs all 188 tests against an in-memory SQLite isolated environment:
 ```bash
 cd backend
 ./vendor/bin/phpunit
 ```
 ```
-Tests: 167, Assertions: 729, Failures: 0, Errors: 0
+Tests: 188, Assertions: 823, Failures: 0, Errors: 0
 ```
 
 ### Frontend Unit Tests

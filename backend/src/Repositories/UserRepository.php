@@ -38,6 +38,22 @@ class UserRepository
         );
     }
 
+    public function findByRole(string $role): array
+    {
+        $sql = 'SELECT * FROM users WHERE role = ? AND is_blocked = 0 AND deleted_at IS NULL';
+        return $this->db->fetchAll($sql, [$role]);
+    }
+
+    public function findByRoles(array $roles): array
+    {
+        if (empty($roles)) {
+            return [];
+        }
+        $placeholders = implode(',', array_fill(0, count($roles), '?'));
+        $sql = "SELECT * FROM users WHERE role IN ({$placeholders}) AND is_blocked = 0 AND deleted_at IS NULL";
+        return $this->db->fetchAll($sql, array_values($roles));
+    }
+
     public function create(array $data): int
     {
         $sql = 'INSERT INTO users (name, phone, email, role, locale, is_blocked, pharmacist_reg_no, phone_verified_at, email_verified_at, created_at, updated_at)

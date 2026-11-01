@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace MediTrack\Jobs;
 
 use MediTrack\Core\Container;
-use MediTrack\Repositories\NotificationRepository;
+use MediTrack\Core\Queue;
 use MediTrack\Repositories\OrderRepository;
-use MediTrack\Repositories\UserRepository;
+use MediTrack\Services\NotificationService;
+use MediTrack\Services\RefillService;
 
 class SendOrderStatusNotificationJob
 {
@@ -34,8 +35,9 @@ class SendOrderStatusNotificationJob
         $container = $container ?? Container::getInstance();
         $job = new self($orderId, $fromStatus, $toStatus, $note);
 
-        if ($container->has(\MediTrack\Core\Queue::class)) {
-            $queue = $container->get(\MediTrack\Core\Queue::class);
+        if ($container->has(Queue::class)) {
+            /** @var Queue $queue */
+            $queue = $container->get(Queue::class);
             $pushed = $queue->push('notifications', [
                 'job' => self::class,
                 'data' => [
@@ -55,14 +57,12 @@ class SendOrderStatusNotificationJob
 
     public function handle(Container $container): bool
     {
-        if (!$container->has(OrderRepository::class) || !$container->has(NotificationRepository::class)) {
+        if (!$container->has(OrderRepository::class)) {
             return false;
         }
 
         /** @var OrderRepository $orderRepo */
         $orderRepo = $container->get(OrderRepository::class);
-        /** @var NotificationRepository $notificationRepo */
-        $notificationRepo = $container->get(NotificationRepository::class);
 
         $order = $orderRepo->findById($this->orderId);
         if (!$order) {
@@ -73,27 +73,55 @@ class SendOrderStatusNotificationJob
         $orderNo = $order['order_no'];
         $statusUpper = strtoupper($this->toStatus);
 
+        $courier = $order['courier'] ?? null;
+        $trackingNo = $order['tracking_number'] ?? null;
+
+        $shippedMsg = "Order #{$orderNo} has been shipped.";
+        if ($courier || $trackingNo) {
+            $shippedMsg = "Order #{$orderNo} has been shipped via " . ($courier ?? 'Courier') .
+                ($trackingNo ? " (Tracking: {$trackingNo})" : "") . ".";
+        }
+
         $statusMessages = [
             'pending' => "Order #{$orderNo} has been received and is pending confirmation.",
             'confirmed' => "Order #{$orderNo} has been confirmed.",
             'packed' => "Order #{$orderNo} has been packed by our pharmacist.",
-            'shipped' => "Order #{$orderNo} has been shipped.",
-            'delivered' => "Order #{$orderNo} has been delivered. Thank you for choosing us!",
+            'shipped' => $shippedMsg,
+            'delivered' => "Order #{$orderNo} has been delivered. Thank you for choosing MediTrack!",
             'cancelled' => "Order #{$orderNo} has been cancelled." . ($this->note ? " Reason: {$this->note}" : ''),
         ];
 
         $title = "Order {$statusUpper}";
         $body = $statusMessages[$this->toStatus] ?? "Order #{$orderNo} is now {$this->toStatus}.";
 
-        $notificationRepo->create($userId, 'order_status', $title, $body, [
+        $data = [
+            'screen' => 'order_detail',
             'order_id' => $this->orderId,
             'order_no' => $orderNo,
             'from_status' => $this->fromStatus,
             'to_status' => $this->toStatus,
             'note' => $this->note,
-        ]);
+            'courier' => $courier,
+            'tracking_number' => $trackingNo,
+        ];
+
+        if ($container->has(NotificationService::class)) {
+            /** @var NotificationService $notifService */
+            $notifService = $container->get(NotificationService::class);
+            $notifService->notifyUser($userId, 'order_status', $title, $body, $data);
+        }
+
+        // On DELIVERED: create refill reminders for the order medicines
+        if ($this->toStatus === 'delivered' && $container->has(RefillService::class)) {
+            try {
+                /** @var RefillService $refillService */
+                $refillService = $container->get(RefillService::class);
+                $refillService->createFromOrder($this->orderId);
+            } catch (\Throwable) {
+                // Non-fatal if order items empty
+            }
+        }
 
         return true;
     }
 }
-

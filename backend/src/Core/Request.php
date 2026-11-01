@@ -142,6 +142,11 @@ class Request
         return $this->body;
     }
 
+    public function body(): array
+    {
+        return $this->body;
+    }
+
     public function json(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {

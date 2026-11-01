@@ -180,6 +180,70 @@ $container->singleton(\MediTrack\Services\CustomerService::class, function ($c) 
     );
 });
 
+// Device Token Repository
+$container->singleton(\MediTrack\Repositories\DeviceTokenRepository::class, function ($c) {
+    return new \MediTrack\Repositories\DeviceTokenRepository($c->get(Database::class));
+});
+
+// Notification Preference Repository
+$container->singleton(\MediTrack\Repositories\NotificationPreferenceRepository::class, function ($c) {
+    return new \MediTrack\Repositories\NotificationPreferenceRepository($c->get(Database::class));
+});
+
+// Push Service Singleton
+$container->singleton(\MediTrack\Services\Push\PushServiceInterface::class, function ($c) use ($basePath) {
+    $deviceRepo = $c->get(\MediTrack\Repositories\DeviceTokenRepository::class);
+    $logger = $c->has(Logger::class) ? $c->get(Logger::class) : null;
+
+    $firebaseCreds = $_ENV['FIREBASE_CREDENTIALS'] ?? null;
+    $messaging = null;
+    if ($firebaseCreds) {
+        $fullCredsPath = str_starts_with($firebaseCreds, '/') || str_contains($firebaseCreds, ':')
+            ? $firebaseCreds
+            : $basePath . '/' . $firebaseCreds;
+
+        if (file_exists($fullCredsPath) && class_exists(\Kreait\Firebase\Factory::class)) {
+            try {
+                $factory = (new \Kreait\Firebase\Factory)->withServiceAccount($fullCredsPath);
+                $messaging = $factory->createMessaging();
+            } catch (\Throwable $e) {
+                if ($logger) {
+                    $logger->warning('Failed to initialize Firebase Messaging: ' . $e->getMessage());
+                }
+            }
+        }
+    }
+
+    return new \MediTrack\Services\Push\PushService($deviceRepo, $messaging, $logger);
+});
+
+// Notification Service Singleton
+$container->singleton(\MediTrack\Services\NotificationService::class, function ($c) {
+    return new \MediTrack\Services\NotificationService(
+        $c->get(\MediTrack\Repositories\NotificationRepository::class),
+        $c->get(\MediTrack\Repositories\NotificationPreferenceRepository::class),
+        $c->get(\MediTrack\Repositories\UserRepository::class),
+        $c->get(\MediTrack\Services\Push\PushServiceInterface::class),
+        $c->has(Queue::class) ? $c->get(Queue::class) : null
+    );
+});
+
+// Refill Reminder Repository
+$container->singleton(\MediTrack\Repositories\RefillReminderRepository::class, function ($c) {
+    return new \MediTrack\Repositories\RefillReminderRepository($c->get(Database::class));
+});
+
+// Refill Service Singleton
+$container->singleton(\MediTrack\Services\RefillService::class, function ($c) {
+    return new \MediTrack\Services\RefillService(
+        $c->get(\MediTrack\Repositories\RefillReminderRepository::class),
+        $c->get(\MediTrack\Repositories\OrderRepository::class),
+        $c->get(\MediTrack\Repositories\MedicineRepository::class),
+        $c->get(\MediTrack\Services\CartService::class),
+        $c->get(\MediTrack\Services\NotificationService::class)
+    );
+});
+
 // Router Singleton
 $router = new Router();
 $container->instance(Router::class, $router);
