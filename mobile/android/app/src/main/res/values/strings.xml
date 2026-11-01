@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AUTO-GENERATED from brand/brand.json by brand/sync.mjs — DO NOT EDIT -->
+<resources>
+    <string name="app_name">MediTrack</string>
+</resources>

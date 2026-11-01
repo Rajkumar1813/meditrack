@@ -1,0 +1,123 @@
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: meditrack-nginx
+    restart: unless-stopped
+    ports:
+      - "${PORT_HTTP:-8080}:80"
+    volumes:
+      - ./frontend/dist:/var/www/frontend/dist:ro
+      - ./backend:/var/www/backend:ro
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php-fpm
+    networks:
+      - meditrack-network
+
+  php-fpm:
+    build:
+      context: ./infra/php
+      dockerfile: Dockerfile
+    container_name: meditrack-php
+    restart: unless-stopped
+    volumes:
+      - ./backend:/var/www/backend
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-meditrack}
+      DB_USERNAME: ${DB_USERNAME:-meditrack}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - meditrack-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: meditrack-mysql
+    restart: unless-stopped
+    ports:
+      - "${PORT_MYSQL:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+      MYSQL_DATABASE: ${DB_DATABASE:-meditrack}
+      MYSQL_USER: ${DB_USERNAME:-meditrack}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - meditrack-mysql-data:/var/lib/mysql
+    networks:
+      - meditrack-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: meditrack-redis
+    restart: unless-stopped
+    ports:
+      - "${PORT_REDIS:-6379}:6379"
+    volumes:
+      - meditrack-redis-data:/data
+    networks:
+      - meditrack-network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: meditrack-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - meditrack-network
+
+  worker:
+    build:
+      context: ./infra/php
+      dockerfile: Dockerfile
+    container_name: meditrack-worker
+    restart: unless-stopped
+    command: ["php", "/var/www/backend/bin/worker.php"]
+    volumes:
+      - ./backend:/var/www/backend
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      DB_HOST: mysql
+      REDIS_HOST: redis
+    depends_on:
+      - php-fpm
+      - redis
+      - mysql
+    networks:
+      - meditrack-network
+
+  cron:
+    build:
+      context: ./infra/php
+      dockerfile: Dockerfile
+    container_name: meditrack-cron
+    restart: unless-stopped
+    command: ["sh", "-c", "while true; do php /var/www/backend/bin/schedule.php; sleep 60; done"]
+    volumes:
+      - ./backend:/var/www/backend
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      DB_HOST: mysql
+      REDIS_HOST: redis
+    depends_on:
+      - php-fpm
+      - redis
+    networks:
+      - meditrack-network
+
+volumes:
+  meditrack-mysql-data:
+  meditrack-redis-data:
+
+networks:
+  meditrack-network:
+    driver: bridge
+

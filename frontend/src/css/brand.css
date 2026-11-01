@@ -1,0 +1,23 @@
+/* AUTO-GENERATED from brand/brand.json by brand/sync.mjs — DO NOT EDIT */
+:root {
+  --brand-primary-50: #ecfdf5;
+  --brand-primary-100: #d1fae5;
+  --brand-primary-200: #a7f3d0;
+  --brand-primary-300: #6ee7b7;
+  --brand-primary-400: #34d399;
+  --brand-primary-500: #10b981;
+  --brand-primary-600: #059669;
+  --brand-primary-700: #047857;
+  --brand-primary-800: #065f46;
+  --brand-primary-900: #064e3b;
+  --brand-accent: #f59e0b;
+  --brand-bg: #f8faf9; --brand-surface: #ffffff; --brand-border: #e2e8f0;
+  --brand-text: #1e293b; --brand-muted: #64748b;
+  --brand-shadow-soft: 0 1px 2px rgba(15,23,42,.06), 0 8px 24px -8px rgba(5,150,105,.18);
+  --brand-shadow-lift: 0 2px 4px rgba(15,23,42,.08), 0 24px 48px -12px rgba(5,150,105,.30);
+  --brand-tilt-max: 8deg;
+}
+.dark {
+  --brand-bg: #020617; --brand-surface: #0f172a; --brand-border: #1e293b;
+  --brand-text: #f1f5f9; --brand-muted: #94a3b8;
+}

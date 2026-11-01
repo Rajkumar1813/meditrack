@@ -1,0 +1,19 @@
+{
+  "name": "meditrack-frontend",
+  "version": "1.0.0",
+  "description": "MediTrack Frontend (HTML + Tailwind + Vanilla JS)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.mjs",
+    "build": "node build.mjs",
+    "brand:sync": "node ../brand/sync.mjs",
+    "test:unit": "node --test tests/unit/*.test.mjs",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "tailwindcss": "^3.4.17"
+  }
+}
+

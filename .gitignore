@@ -1,0 +1,51 @@
+# User local documentation & blueprints
+/docs
+/reference
+/rules
+
+# Dependencies
+/backend/vendor/
+/frontend/node_modules/
+/mobile/.dart_tool/
+/mobile/build/
+/mobile/.flutter-plugins
+/mobile/.flutter-plugins-dependencies
+/mobile/.packages
+
+# Environments & Sensitive Configs
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Application Storage & Generated Outputs
+/backend/storage/logs/*.log
+/backend/storage/invoices/*.pdf
+/backend/storage/prescriptions/*
+!/backend/storage/prescriptions/.gitkeep
+/backend/storage/backups/*.sql
+/backend/storage/backups/*.gz
+!/backend/storage/backups/.gitkeep
+!/backend/storage/invoices/.gitkeep
+!/backend/storage/logs/.gitkeep
+/scratch/
+
+# Database dumps & local sqlite files
+*.sqlite
+*.sqlite3
+
+# Test caches & local run outputs
+.phpunit.cache/
+backend/.phpunit.cache/
+test-results/
+frontend/test-results/
+playwright-report/
+
+# OS & IDE Files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

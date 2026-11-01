@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- @include partials/head.html -->
+</head>
+<body data-guard="auth" data-roles="admin,pharmacist,staff" class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex font-sans transition-colors duration-200">
+  <!-- @include partials/admin-sidebar.html -->
+
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- @include partials/admin-topbar.html -->
+
+    <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+      <!-- 6 Stat Cards from Reference UI -->
+      <section class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <!-- Total Medicines -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm card-3d">
+          <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider" data-i18n="totalMedicines">
+            Total Medicines
+          </div>
+          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1" id="stat-total-medicines">-</div>
+        </div>
+
+        <!-- Total Units -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm card-3d">
+          <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider" data-i18n="totalQty">
+            Total Units
+          </div>
+          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1" id="stat-total-units">-</div>
+        </div>
+
+        <!-- Low Stock -->
+        <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 shadow-sm card-3d">
+          <div class="text-[11px] font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider" data-i18n="lowStock">
+            Low Stock
+          </div>
+          <div class="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-1" id="stat-low-stock">-</div>
+        </div>
+
+        <!-- Expiring in 30d -->
+        <div class="p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/40 shadow-sm card-3d">
+          <div class="text-[11px] font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wider" data-i18n="expiring30">
+            Expiring in 30d
+          </div>
+          <div class="text-2xl font-bold text-orange-700 dark:text-orange-300 mt-1" id="stat-expiring-30">-</div>
+        </div>
+
+        <!-- Expired -->
+        <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 shadow-sm card-3d">
+          <div class="text-[11px] font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider" data-i18n="expiredCount">
+            Expired
+          </div>
+          <div class="text-2xl font-bold text-red-700 dark:text-red-300 mt-1" id="stat-expired">-</div>
+        </div>
+
+        <!-- Stock Value -->
+        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 shadow-sm card-3d">
+          <div class="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider" data-i18n="totalValue">
+            Stock Value
+          </div>
+          <div class="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1" id="stat-stock-value">-</div>
+        </div>
+      </section>
+
+      <!-- Welcome Banner -->
+      <section class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft">
+        <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2">Pharmacy Inventory & Orders</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">
+          Track FEFO batch allocations, review incoming prescriptions, process orders, and manage racks/shelves.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
+

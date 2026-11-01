@@ -1,0 +1,7 @@
+# AUTO-GENERATED from brand/brand.json by brand/sync.mjs — DO NOT EDIT
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "../brand/assets/app-icon-1024.png"
+  adaptive_icon_background: "#059669"
+  adaptive_icon_foreground: "../brand/assets/logo-mark.png"
