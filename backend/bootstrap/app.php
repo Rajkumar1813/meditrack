@@ -107,6 +107,9 @@ $container->singleton(Database::class, function () use ($basePath) {
 // Redis Singleton
 $container->singleton(RedisClient::class, function () use ($basePath) {
     $redisConfig = require $basePath . '/config/redis.php';
+    if (!($redisConfig['enabled'] ?? true) || empty($redisConfig['host']) || $redisConfig['host'] === 'null') {
+        return null;
+    }
     try {
         return new RedisClient([
             'scheme' => $redisConfig['scheme'] ?? 'tcp',

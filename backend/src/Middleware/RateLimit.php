@@ -39,8 +39,8 @@ class RateLimit implements MiddlewareInterface
         $window = $groupConfig['window'];
         $failClosed = $groupConfig['fail_closed'] ?? false;
 
-        // In testing environment without live Redis, do not fail-closed
-        if (($_ENV['APP_ENV'] ?? '') === 'testing') {
+        // In testing and local dev without live Redis, do not fail-closed
+        if (in_array($_ENV['APP_ENV'] ?? '', ['testing', 'local', 'development'], true)) {
             $failClosed = false;
         }
 
