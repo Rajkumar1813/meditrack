@@ -1,0 +1,52 @@
+{
+  "@@locale": "hi",
+  "appName": "MediTrack",
+  "tagline": "आपकी विश्वसनीय ऑनलाइन फार्मेसी",
+  "adminTagline": "फार्मेसी इन्वेंटरी ओएस",
+  "loginTitle": "MediTrack में आपका स्वागत है",
+  "loginSubtitle": "6-अंकों का OTP पाने के लिए मोबाइल नंबर या ईमेल दर्ज करें",
+  "phoneMode": "मोबाइल नंबर",
+  "emailMode": "ईमेल",
+  "phonePlaceholder": "10-अंकों का मोबाइल नंबर",
+  "emailPlaceholder": "name@example.com",
+  "sendOtp": "OTP भेजें",
+  "sendingOtp": "भेज रहे हैं...",
+  "verifyOtp": "सत्यापित करें और आगे बढ़ें",
+  "verifyingOtp": "सत्यापित कर रहे हैं...",
+  "enterOtpFor": "{target} पर भेजा गया 6-अंकों का कोड दर्ज करें",
+  "@enterOtpFor": {
+    "placeholders": {
+      "target": { "type": "String" }
+    }
+  },
+  "resendIn": "{seconds}s में पुनः भेजें",
+  "@resendIn": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "resendOtp": "OTP पुनः भेजें",
+  "invalidPhone": "कृपया वैध 10-अंकों का मोबाइल नंबर दर्ज करें",
+  "invalidEmail": "कृपया वैध ईमेल दर्ज करें",
+  "invalidOtp": "कृपया पूरा 6-अंकों का OTP दर्ज करें",
+  "rateLimitMessage": "बहुत अधिक अनुरोध। कृपया {seconds}s प्रतीक्षा करें।",
+  "@rateLimitMessage": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "homeTitle": "फार्मेसी स्टोर",
+  "ownerTitle": "फार्मेसी इन्वेंटरी ओएस",
+  "customerRole": "ग्राहक",
+  "pharmacistRole": "फार्मासिस्ट",
+  "adminRole": "एडमिन",
+  "staffRole": "स्टाफ",
+  "offlineBanner": "आप ऑफ़लाइन हैं। सहेजा गया डेटा दिखाया जा रहा है।",
+  "themeMode": "थीम",
+  "language": "भाषा",
+  "logout": "लॉग आउट",
+  "retry": "पुनः प्रयास करें",
+  "errorGeneric": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
+  "changeIdentifier": "नंबर / ईमेल बदलें"
+}
+

@@ -11,7 +11,7 @@
 [![MySQL 8](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-6.x%2F7.x-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/)
 [![Flutter](https://img.shields.io/badge/Flutter-Ready-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/)
-[![Tests Passing](https://img.shields.io/badge/Tests-217%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
+[![Tests Passing](https://img.shields.io/badge/Tests-224%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-blue.svg)](#)
 
 </div>
@@ -36,6 +36,7 @@
 - [Testing & Verification](#-testing--verification)
 - [Customer Web Storefront Architecture (Phase 10)](#-customer-web-storefront-architecture-phase-10)
 - [Admin Inventory OS & Pharmacy Management (Phase 11)](#-admin-inventory-os--pharmacy-management-phase-11)
+- [Mobile Architecture & Flutter Foundation (Phase 12)](#-mobile-architecture--flutter-foundation-phase-12)
 - [License & Compliance Notice](#-license--compliance-notice)
 
 ---
@@ -534,6 +535,23 @@ npm run test:e2e
   16 passed (100% clean across storefront & admin)
 ```
 
+### Mobile Flutter Widget Tests
+Executes Flutter widget tests covering auth mode switching, 6-digit OTP entry, rate-limit backoff UI, role-based screen routing, and Card3D reduced-motion accessibility:
+```bash
+cd mobile
+flutter test
+```
+```
+00:00 +0: Login & OTP Screen Widget Tests mode toggle switches between mobile number and email
+00:15 +1: Login & OTP Screen Widget Tests validates invalid mobile number and shows error message
+00:17 +2: Login & OTP Screen Widget Tests rate limit countdown banner displays seconds and disables button
+00:17 +3: Login & OTP Screen Widget Tests otp verify screen renders 6 digit input boxes and target phone
+00:19 +4: Role-Based Home Destinations customer role renders customer home screen with customer badge
+00:20 +5: Role-Based Home Destinations pharmacist role renders owner dashboard with pharmacist badge and KPIs
+00:20 +6: Card3D Widget Animations and Reduced Motion Card3D renders child normally when reduce-motion is enabled
+00:21 +7: All tests passed!
+```
+
 ---
 
 ## 🛍 Customer Web Storefront Architecture (Phase 10)
@@ -613,6 +631,41 @@ The pharmacy back-office operating system is implemented under `frontend/src/adm
   - Strict UI privilege gating: elements and sidebar links marked with `data-role-required="admin"` (e.g. Master Settings, Customer blocking, System backups) are hidden for non-admin staff, and route guards redirect unauthorized role attempts to `/admin/index.html`.
 - **Absolute XSS Immunity**:
   - Exactly 0 usages of `.innerHTML =` across all admin JavaScript code. All tables, cards, badges, and modals are built purely via safe DOM constructors (`el`, `setText`, `append`).
+
+---
+
+## 📱 Mobile Architecture & Flutter Foundation (Phase 12)
+
+The cross-platform mobile client (`mobile/`) is built on **Flutter 3.x (Android-first)** with a decoupled, reactive architecture sharing the single source of truth branding from `brand/brand.json`:
+
+- **State Management & Navigation**:
+  - **Riverpod 2.6**: Dependency injection and state management via immutable `StateNotifier` controllers (`authControllerProvider`, `brandControllerProvider`, `themeModeProvider`, `appLocaleProvider`).
+  - **GoRouter 17.x**: Declarative routing with global auth & role redirection guards:
+    - Unauthenticated users: restricted to `/login` and `/otp`.
+    - Authenticated Customers: routed to `/home` (Customer Storefront).
+    - Authenticated Admins/Pharmacists/Staff: routed to `/owner` (Inventory OS Dashboard).
+    - Customer accounts attempting to navigate to `/owner` are redirected back to `/home`.
+
+- **Branding & Dynamic Theming**:
+  - `core/brand/brand_tokens.dart`: Code-generated from `brand/brand.json` with primary emerald swatch, accent amber, semantic alert colors, and shape radii.
+  - `BrandController`: In-memory brand state seeded from tokens, cached via `SharedPreferences`, and updated over the wire via `/api/v1/brand` with HTTP `If-None-Match` ETag caching (304 Not Modified support).
+  - `AppTheme`: Light and Dark themes generated directly from brand tokens, using Google Fonts Inter and strict Material 3 radius tokens (`radiusCard: 16`, `radiusButton: 999`, `radiusInput: 12`).
+  - `Card3D`: Perspective `Matrix4` tilt card widget responding to touch gesture vectors, with strict accessibility fallback honoring `MediaQuery.disableAnimations` (prefers-reduced-motion).
+
+- **Hardened Mobile Network Pipeline (Dio)**:
+  - `AuthInterceptor`: Automatically attaches JWT `Authorization: Bearer <token>`, catches 401 Unauthorized responses, executes atomic token rotation via `POST /api/v1/auth/refresh` (`client=mobile`), stores updated tokens in `FlutterSecureStorage` (AES-256 Android Keystore), and retries the original request.
+  - `RateLimitInterceptor`: Intercepts 429 Too Many Requests, parses `Retry-After` headers and payload data, and drives a live countdown timer (`rateLimitProvider`) in the UI that disables submission buttons until the cooldown expires.
+  - `OfflineBanner`: Real-time network listener (`connectivity_plus`) displaying a top offline alert ribbon when data connectivity drops.
+  - `ApiResult<T>`: Sealed class pattern (`ApiSuccess<T>` vs `ApiFailure<T>`) guaranteeing exhaustiveness and eliminating uncaught runtime exceptions.
+
+- **Utilities & Internationalization**:
+  - `Paginator<T>`: Cursor-based infinite scrolling controller with pull-to-refresh (`RefreshIndicator`), loading shimmer skeletons, and empty/error states with retry handlers.
+  - `Debouncer`: Input debouncing utility for search suggestion fields.
+  - `i18n`: Full bilingual support (`en`, `hi`) using Flutter `.arb` message bundles and persistent locale selection.
+
+- **Push Notifications & Android Integration**:
+  - `FcmService`: Firebase Cloud Messaging token retrieval, registration to backend `POST /api/v1/devices`, high-importance Android notification channel (`meditrack_notifications`), foreground notification banners via `flutter_local_notifications`, and deep-link payload routing on notification tap.
+  - Android package configured as `com.meditrack.app` with dynamic app label from `strings.xml` and adaptive launcher icons generated via `flutter_launcher_icons`.
 
 ---
 

@@ -1,0 +1,52 @@
+{
+  "@@locale": "en",
+  "appName": "MediTrack",
+  "tagline": "Your Trusted Online Pharmacy",
+  "adminTagline": "Pharmacy Inventory OS",
+  "loginTitle": "Welcome to MediTrack",
+  "loginSubtitle": "Enter your mobile number or email to receive a 6-digit OTP",
+  "phoneMode": "Mobile Number",
+  "emailMode": "Email",
+  "phonePlaceholder": "10-digit mobile number",
+  "emailPlaceholder": "name@example.com",
+  "sendOtp": "Send OTP",
+  "sendingOtp": "Sending...",
+  "verifyOtp": "Verify & Proceed",
+  "verifyingOtp": "Verifying...",
+  "enterOtpFor": "Enter 6-digit code sent to {target}",
+  "@enterOtpFor": {
+    "placeholders": {
+      "target": { "type": "String" }
+    }
+  },
+  "resendIn": "Resend code in {seconds}s",
+  "@resendIn": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "resendOtp": "Resend OTP",
+  "invalidPhone": "Please enter a valid 10-digit mobile number",
+  "invalidEmail": "Please enter a valid email address",
+  "invalidOtp": "Please enter all 6 digits of the OTP",
+  "rateLimitMessage": "Too many requests. Please wait {seconds}s.",
+  "@rateLimitMessage": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "homeTitle": "Pharmacy Store",
+  "ownerTitle": "Pharmacy Inventory OS",
+  "customerRole": "Customer",
+  "pharmacistRole": "Pharmacist",
+  "adminRole": "Admin",
+  "staffRole": "Staff",
+  "offlineBanner": "You are currently offline. Showing cached catalog.",
+  "themeMode": "Theme",
+  "language": "Language",
+  "logout": "Logout",
+  "retry": "Retry",
+  "errorGeneric": "Something went wrong. Please try again.",
+  "changeIdentifier": "Change number / email"
+}
+
