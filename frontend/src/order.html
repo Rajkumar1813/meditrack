@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- @include partials/head.html -->
+</head>
+<body data-guard="auth" class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+  <!-- @include partials/header.html -->
+
+  <!-- Order Detail Main -->
+  <main class="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 sm:pb-12">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6" aria-label="Breadcrumb">
+      <a href="/index.html" class="hover:text-primary-600 transition" data-i18n="home">Home</a>
+      <span>/</span>
+      <a href="/orders.html" class="hover:text-primary-600 transition" data-i18n="orders">Orders</a>
+      <span>/</span>
+      <span class="text-slate-900 dark:text-white font-medium" id="order-heading-no">
+        Order Timeline
+      </span>
+    </nav>
+
+    <!-- Content Container -->
+    <section id="order-detail-container">
+      <!-- Loading Skeleton -->
+      <div class="h-64 rounded-3xl bg-slate-200 dark:bg-slate-800 skeleton-shimmer mb-8"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 h-64 rounded-3xl bg-slate-200 dark:bg-slate-800 skeleton-shimmer"></div>
+        <div class="h-64 rounded-3xl bg-slate-200 dark:bg-slate-800 skeleton-shimmer"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- @include partials/bottom-nav.html -->
+  <!-- @include partials/footer.html -->
+
+  <!-- App Bootstrap & Order Detail Store JS -->
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/store/order-detail.js"></script>
+</body>
+</html>
+

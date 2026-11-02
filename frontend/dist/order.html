@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="MediTrack - 100% genuine medicines, healthcare essentials, and doorstep prescription delivery from licensed pharmacies.">
+<title>Order - MediTrack</title>
+<link rel="icon" type="image/png" href="/assets/brand/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/app.css">
+<!-- Pre-load brand defaults and apply anti-FOUC theme class -->
+<script src="/js/brand.generated.js"></script>
+<script>
+  (function() {
+    const saved = localStorage.getItem('meditrack_theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (saved === 'dark' || (!saved && prefersDark)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  })();
+</script>
+
+
+</head>
+<body data-guard="auth" class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+  <header class="sticky top-0 z-40 glass w-full transition-colors duration-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <!-- Brand Logo -->
+    <a href="/index.html" class="flex items-center gap-2.5 shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg" aria-label="MediTrack Home">
+      <img data-brand-logo="full" src="/assets/brand/logo.svg" alt="MediTrack" class="h-8 w-auto">
+      <span class="sr-only" data-brand="name">MediTrack</span>
+    </a>
+
+    <!-- Search Bar (Desktop & Tablet) -->
+    <div class="flex-1 max-w-lg hidden sm:block relative">
+      <div class="relative">
+        <label for="global-search" class="sr-only">Search medicines, generic name, or composition salt</label>
+        <input
+          type="search"
+          id="global-search"
+          data-i18n-placeholder="searchPlaceholder"
+          placeholder="Search medicines, generic name, salt..."
+          autocomplete="off"
+          class="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 pl-10 pr-4 py-2 rounded-full text-sm border border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 outline-none transition"
+        >
+        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </span>
+      </div>
+      <!-- Suggestions Dropdown -->
+      <div id="global-search-dropdown" class="hidden absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-lift border border-slate-200 dark:border-slate-800 overflow-hidden z-50 max-h-96 overflow-y-auto"></div>
+    </div>
+
+    <!-- Actions: Lang, Theme, Notifications, Cart, Profile/Login -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Language Switcher -->
+      <button
+        id="lang-toggle"
+        class="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition"
+        title="Change Language"
+        aria-label="Change Language"
+      >
+        <span data-i18n-active>हिन्दी</span>
+      </button>
+
+      <!-- Theme Switcher -->
+      <button
+        id="theme-toggle"
+        class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+        title="Toggle Theme"
+        aria-label="Toggle Theme"
+      >
+        <svg class="w-5 h-5 hidden dark:block text-amber-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+        <svg class="w-5 h-5 block dark:hidden text-slate-700" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+      </button>
+
+      <!-- Notifications Icon -->
+      <a
+        href="/notifications.html"
+        id="header-notif-btn"
+        class="relative p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+        title="Notifications"
+        aria-label="View Notifications"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span id="header-notif-badge" class="hidden absolute top-1 right-1 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+      </a>
+
+      <!-- Cart Icon -->
+      <a
+        href="/cart.html"
+        class="relative p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+        title="View Cart"
+        aria-label="View Cart"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+        <span id="header-cart-badge" class="hidden absolute top-1 right-1 w-4 h-4 bg-primary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+      </a>
+
+      <!-- Auth Navigation / Profile Button -->
+      <div id="auth-nav-container">
+        <a
+          href="/login.html"
+          class="px-4 py-1.5 rounded-full bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold shadow-sm transition"
+          data-i18n="login"
+        >
+          Login
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+
+  <!-- Order Detail Main -->
+  <main class="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 sm:pb-12">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6" aria-label="Breadcrumb">
+      <a href="/index.html" class="hover:text-primary-600 transition" data-i18n="home">Home</a>
+      <span>/</span>
+      <a href="/orders.html" class="hover:text-primary-600 transition" data-i18n="orders">Orders</a>
+      <span>/</span>
+      <span class="text-slate-900 dark:text-white font-medium" id="order-heading-no">
+        Order Timeline
+      </span>
+    </nav>
+
+    <!-- Content Container -->
+    <section id="order-detail-container">
+      <!-- Loading Skeleton -->
+      <div class="h-64 rounded-3xl bg-slate-200 dark:bg-slate-800 skeleton-shimmer mb-8"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 h-64 rounded-3xl bg-slate-200 dark:bg-slate-800 skeleton-shimmer"></div>
+        <div class="h-64 rounded-3xl bg-slate-200 dark:bg-slate-800 skeleton-shimmer"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-slate-200 dark:border-slate-800 transition-colors duration-200">
+  <div class="grid grid-cols-5 h-14">
+    <a href="/index.html" class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary-600 transition" data-nav="home">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      <span class="text-[10px] mt-0.5" data-i18n="home">Home</span>
+    </a>
+    <a href="/catalog.html" class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary-600 transition" data-nav="catalog">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+      <span class="text-[10px] mt-0.5" data-i18n="catalog">Catalog</span>
+    </a>
+    <a href="/cart.html" class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary-600 transition relative" data-nav="cart">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+      <span class="text-[10px] mt-0.5" data-i18n="cart">Cart</span>
+    </a>
+    <a href="/orders.html" class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary-600 transition" data-nav="orders">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <span class="text-[10px] mt-0.5" data-i18n="orders">Orders</span>
+    </a>
+    <a href="/profile.html" class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary-600 transition" data-nav="profile">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <span class="text-[10px] mt-0.5" data-i18n="profile">Profile</span>
+    </a>
+  </div>
+</nav>
+
+
+  <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 mt-auto transition-colors duration-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div class="space-y-3">
+        <img data-brand-logo="full" src="/assets/brand/logo.svg" alt="MediTrack" class="h-8 w-auto">
+        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed" data-brand="tagline">
+          Your Trusted Online Pharmacy
+        </p>
+      </div>
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100 mb-3">Support</h4>
+        <ul class="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+          <li>Email: <span data-brand="supportEmail" class="text-slate-700 dark:text-slate-300">support@meditrack.example</span></li>
+          <li>Phone: <span data-brand="supportPhone" class="text-slate-700 dark:text-slate-300">+910000000000</span></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100 mb-3">Compliance</h4>
+        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          Prescription drugs dispensed strictly by verified licensed pharmacists.
+        </p>
+      </div>
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-100 mb-3">Quick Links</h4>
+        <ul class="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+          <li><a href="/index.html" class="hover:text-primary-600 transition" data-i18n="home">Home</a></li>
+          <li><a href="/catalog.html" class="hover:text-primary-600 transition" data-i18n="catalog">Catalog</a></li>
+          <li><a href="/admin/index.html" class="hover:text-primary-600 transition">Owner Portal</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-400">
+      &copy; <span id="current-year">2026</span> <span data-brand="name">MediTrack</span>. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+
+
+  <!-- App Bootstrap & Order Detail Store JS -->
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/store/order-detail.js"></script>
+</body>
+</html>
+

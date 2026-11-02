@@ -184,6 +184,14 @@ document.getElementById('new-address-form')?.addEventListener('submit', async (e
 });
 
 async function handlePlaceOrder() {
+  const checkedAddr = document.querySelector('input[name="delivery_address"]:checked');
+  if (checkedAddr) {
+    selectedAddressId = parseInt(checkedAddr.value, 10);
+  } else if (!selectedAddressId && addressesState.length > 0) {
+    const defaultAddr = addressesState.find(a => Number(a.is_default) === 1) || addressesState[0];
+    selectedAddressId = defaultAddr ? defaultAddr.id : null;
+  }
+
   if (!selectedAddressId) {
     showAlert('Please select or add a delivery address.', false);
     return;
@@ -212,9 +220,9 @@ async function handlePlaceOrder() {
       activeOrderId = order.id;
     }
 
-    // 2. COD flow -> done immediately
+    // 2. COD flow -> redirect to order detail page
     if (paymentMethod === 'cod') {
-      window.location.href = `/orders.html?confirmed=${activeOrderId}`;
+      window.location.href = `/order.html?id=${activeOrderId}`;
       return;
     }
 
@@ -244,7 +252,7 @@ async function handlePlaceOrder() {
             razorpay_signature: response.razorpay_signature
           });
 
-          window.location.href = `/orders.html?confirmed=${activeOrderId}`;
+          window.location.href = `/order.html?id=${activeOrderId}`;
         } catch (verifyErr) {
           showAlert(verifyErr.message || 'Payment verification failed.', true);
         } finally {

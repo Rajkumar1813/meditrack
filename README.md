@@ -11,7 +11,7 @@
 [![MySQL 8](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-6.x%2F7.x-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/)
 [![Flutter](https://img.shields.io/badge/Flutter-Ready-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/)
-[![Tests Passing](https://img.shields.io/badge/Tests-188%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
+[![Tests Passing](https://img.shields.io/badge/Tests-214%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-blue.svg)](#)
 
 </div>
@@ -503,6 +503,54 @@ npm run test:unit
 ✔ i18n Core Module (bilingual en/hi switching)
 ℹ tests 13 | pass 13 | fail 0
 ```
+
+### Frontend End-to-End Tests (Playwright)
+Validates complete user journeys, security invariants, accessibility, and visual micro-interactions:
+```bash
+cd frontend
+npm run test:e2e
+```
+```
+  ok  1 complete flow: login -> search -> cart -> COD checkout -> order detail page (34.7s)
+  ok  2 XSS immunity: medicine with <script> tag renders as safe text, never executes (1.4s)
+  ok  3 3D perspective card tilt honors prefers-reduced-motion (1.3s)
+  ok  4 mode toggle switches between mobile number and email (2.5s)
+  ok  5 validates invalid mobile number with error message (2.2s)
+  ok  6 complete OTP request and admin login redirect flow (2.9s)
+  ok  7 customer role redirects to store homepage (32.6s)
+  ok  8 rate limit 429 shows countdown banner and disables buttons (1.6s)
+  ok  9 home page renders brand name, header, and categories (3.6s)
+  ok 10 theme toggle switches dark mode class on html element (2.9s)
+  ok 11 language toggle switches locale and updates labels (2.4s)
+  ok 12 login page displays OTP request form with 3D card layout (2.1s)
+  ok 13 admin page redirects unauthenticated users to login (2.0s)
+
+  13 passed (100% clean)
+```
+
+---
+
+## 🛍 Customer Web Storefront Architecture (Phase 10)
+
+The storefront is crafted in `frontend/src/` with a zero-framework architecture designed for instantaneous loads, micro-animations, and complete compliance:
+
+- **11 Dedicated Pages**:
+  - `index.html`: Hero with floating 3D CSS/SVG capsule & tablet illustrations, dosage categories, and active refill reminder teaser.
+  - `catalog.html`: Real-time filtering (categories, prescription requirement, in-stock only, price range), sort order, and grid/list view toggle.
+  - `medicine.html`: Earliest-expiring batch FEFO pricing, full salt composition breakdown, Rx badge, quantity stepper, and therapeutic generic alternatives.
+  - `cart.html`: Real-time stock reservation check, batch details, subtotal + GST calculation, Rx warning alert banner.
+  - `checkout.html`: Saved delivery address selection + inline address creator, payment mode (Razorpay Checkout JS + Cash on Delivery), and `Idempotency-Key` protected order placement.
+  - `orders.html`: Order history cards with cursor-based pagination and status badges.
+  - `order.html`: Visual fulfillment stepper timeline (Pending → Confirmed → Packed → Shipped → Delivered / Cancelled), tracking information, address snapshot, Dompdf GST tax invoice download, and 1-tap reorder.
+  - `upload-rx.html`: Drag-and-drop prescription uploader (JPG/PNG/PDF ≤5MB, up to 5 files) with review history and signed HMAC view links.
+  - `profile.html`: Customer details, saved addresses CRUD (add/edit/delete/default), push notification preferences, active refills management, and DPDP Act 2023 data export/erasure portal.
+  - `notifications.html`: In-app notification inbox, unread counts, and deep-link routing.
+  - `login.html`: 3D tilt authentication card with phone/email OTP, 60s cooldown timer, and role-based redirects.
+- **Micro-Interactions & 3D Polish**:
+  - CSS perspective card tilt (`js/ui/tilt-3d.js`) honoring `prefers-reduced-motion`.
+  - Debounced auto-suggest search (`js/ui/search-suggest.js`) with medicine & salt grouping, safe text highlighting, and `AbortController` cancellation.
+  - Zero dynamic `innerHTML`: 100% of DOM nodes are rendered safely using text and element builders (`el()`, `text()`, `append()`, `setText()`), eliminating XSS vulnerabilities.
+  - Bilingual English/Hindi toggle with dynamic dictionary loading.
 
 ---
 

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home - <span data-brand="name">MediTrack</span></title>
+<meta name="description" content="MediTrack - 100% genuine medicines, healthcare essentials, and doorstep prescription delivery from licensed pharmacies.">
+<title>Home - MediTrack</title>
 <link rel="icon" type="image/png" href="/assets/brand/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,34 +30,39 @@
   <header class="sticky top-0 z-40 glass w-full transition-colors duration-200">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
     <!-- Brand Logo -->
-    <a href="/index.html" class="flex items-center gap-2.5 shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
+    <a href="/index.html" class="flex items-center gap-2.5 shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg" aria-label="MediTrack Home">
       <img data-brand-logo="full" src="/assets/brand/logo.svg" alt="MediTrack" class="h-8 w-auto">
       <span class="sr-only" data-brand="name">MediTrack</span>
     </a>
 
-    <!-- Search Bar -->
+    <!-- Search Bar (Desktop & Tablet) -->
     <div class="flex-1 max-w-lg hidden sm:block relative">
       <div class="relative">
+        <label for="global-search" class="sr-only">Search medicines, generic name, or composition salt</label>
         <input
           type="search"
           id="global-search"
           data-i18n-placeholder="searchPlaceholder"
           placeholder="Search medicines, generic name, salt..."
+          autocomplete="off"
           class="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 pl-10 pr-4 py-2 rounded-full text-sm border border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 outline-none transition"
         >
-        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" aria-hidden="true">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </span>
       </div>
+      <!-- Suggestions Dropdown -->
+      <div id="global-search-dropdown" class="hidden absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-lift border border-slate-200 dark:border-slate-800 overflow-hidden z-50 max-h-96 overflow-y-auto"></div>
     </div>
 
-    <!-- Actions: Lang Toggle, Theme Toggle, Cart, Profile/Login -->
+    <!-- Actions: Lang, Theme, Notifications, Cart, Profile/Login -->
     <div class="flex items-center gap-2 sm:gap-3">
       <!-- Language Switcher -->
       <button
         id="lang-toggle"
         class="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition"
         title="Change Language"
+        aria-label="Change Language"
       >
         <span data-i18n-active>हिन्दी</span>
       </button>
@@ -66,18 +72,32 @@
         id="theme-toggle"
         class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
         title="Toggle Theme"
+        aria-label="Toggle Theme"
       >
-        <svg class="w-5 h-5 hidden dark:block text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
-        <svg class="w-5 h-5 block dark:hidden text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+        <svg class="w-5 h-5 hidden dark:block text-amber-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+        <svg class="w-5 h-5 block dark:hidden text-slate-700" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
       </button>
+
+      <!-- Notifications Icon -->
+      <a
+        href="/notifications.html"
+        id="header-notif-btn"
+        class="relative p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+        title="Notifications"
+        aria-label="View Notifications"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span id="header-notif-badge" class="hidden absolute top-1 right-1 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+      </a>
 
       <!-- Cart Icon -->
       <a
         href="/cart.html"
         class="relative p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
         title="View Cart"
+        aria-label="View Cart"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
         <span id="header-cart-badge" class="hidden absolute top-1 right-1 w-4 h-4 bg-primary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
       </a>
 
@@ -96,67 +116,179 @@
 </header>
 
 
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 sm:pb-12">
 
-  <!-- Hero Section -->
-  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full pb-20 sm:pb-8">
-    <section class="rounded-3xl p-8 sm:p-12 mb-8 bg-gradient-to-r from-primary-600 to-primary-800 text-white shadow-lift relative overflow-hidden">
+    <!-- Active Refill Due Teaser Container (Populated if logged in) -->
+    <div id="refill-teaser-container" class="hidden"></div>
+
+    <!-- 3D Hero Section -->
+    <section class="rounded-3xl p-6 sm:p-12 mb-10 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 text-white shadow-lift relative overflow-hidden">
+      <!-- 3D Floating Capsule / Pill Illustrations (Pure CSS & SVG, composited) -->
+      <div class="absolute right-4 sm:right-12 top-1/2 -translate-y-1/2 pointer-events-none hidden md:block w-72 h-72">
+        <!-- Floating Capsule 1 -->
+        <div class="absolute top-4 right-8 w-28 h-48 animate-float-slow" style="filter: drop-shadow(0 20px 25px rgba(0,0,0,0.3));">
+          <svg viewBox="0 0 100 180" class="w-full h-full transform -rotate-12">
+            <defs>
+              <linearGradient id="capGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#34d399" />
+                <stop offset="100%" stop-color="#047857" />
+              </linearGradient>
+              <linearGradient id="capWhite" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="100%" stop-color="#cbd5e1" />
+              </linearGradient>
+              <linearGradient id="capShine" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6" />
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Top Half (Green) -->
+            <path d="M 10 90 A 40 40 0 0 1 90 90 Z" fill="url(#capGreen)" />
+            <path d="M 10 50 A 40 40 0 0 1 90 50 L 90 90 L 10 90 Z" fill="url(#capGreen)" />
+            <!-- Bottom Half (White) -->
+            <path d="M 10 90 L 90 90 L 90 130 A 40 40 0 0 1 10 130 Z" fill="url(#capWhite)" />
+            <!-- Gloss highlight overlay -->
+            <rect x="22" y="25" width="14" height="130" rx="7" fill="url(#capShine)" />
+            <line x1="10" y1="90" x2="90" y2="90" stroke="#065f46" stroke-width="2" opacity="0.4" />
+          </svg>
+        </div>
+
+        <!-- Floating Tablet 2 -->
+        <div class="absolute bottom-6 left-2 w-20 h-20 animate-float-reverse" style="filter: drop-shadow(0 15px 20px rgba(0,0,0,0.25));">
+          <svg viewBox="0 0 100 100" class="w-full h-full transform rotate-45">
+            <defs>
+              <linearGradient id="tabAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fbbf24" />
+                <stop offset="100%" stop-color="#d97706" />
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="45" fill="url(#tabAmber)" />
+            <!-- Embossed pill groove -->
+            <line x1="20" y1="50" x2="80" y2="50" stroke="#b45309" stroke-width="4" stroke-linecap="round" />
+            <!-- Shading circle -->
+            <ellipse cx="40" cy="35" rx="20" ry="12" fill="#ffffff" opacity="0.3" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Hero Content -->
       <div class="relative z-10 max-w-2xl">
-        <span class="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold backdrop-blur-md mb-4" data-brand="tagline">
-          Your Trusted Online Pharmacy
-        </span>
-        <h1 class="text-3xl sm:text-5xl font-bold tracking-tight mb-4">
-          Genuine Medicines Delivered Fast
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-xs font-semibold mb-4 border border-white/20">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Verified Pharmacy Network</span>
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 leading-tight">
+          Genuine Medicines Delivered With Care
         </h1>
-        <p class="text-white/80 text-sm sm:text-base leading-relaxed mb-6">
-          Order 100% verified medicines, healthcare products, and schedule refills directly from licensed pharmacies.
+        <p class="text-white/85 text-sm sm:text-base leading-relaxed mb-6 max-w-xl">
+          Order 100% authentic medicines, healthcare essentials, and Schedule H prescription drugs safely verified by licensed pharmacists.
         </p>
-        <div class="flex flex-wrap gap-3">
-          <a href="/catalog.html" class="px-6 py-3 rounded-full bg-white text-primary-700 font-semibold text-sm hover:bg-slate-100 transition shadow-sm" data-i18n="catalog">
-            Browse Catalog
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-wrap items-center gap-3">
+          <a
+            href="/catalog.html"
+            class="px-6 py-3 rounded-full bg-white text-primary-700 font-bold text-sm hover:bg-slate-100 hover:shadow-soft active:scale-95 transition"
+            data-i18n="catalog"
+          >
+            Browse Medicines
           </a>
-          <a href="/upload-rx.html" class="px-6 py-3 rounded-full bg-primary-700 text-white font-semibold text-sm hover:bg-primary-900 border border-white/20 transition">
+          <a
+            href="/upload-rx.html"
+            class="px-6 py-3 rounded-full bg-primary-800/80 hover:bg-primary-800 text-white font-semibold text-sm border border-white/30 backdrop-blur-sm active:scale-95 transition flex items-center gap-1.5"
+            data-i18n="uploadPrescription"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             Upload Prescription
           </a>
         </div>
       </div>
-      <!-- Decorative circle -->
-      <div class="absolute -right-16 -bottom-16 w-80 h-80 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
     </section>
 
-    <!-- Categories Placeholder -->
+    <!-- Categories Section -->
     <section class="mb-10">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-slate-900 dark:text-white" data-i18n="filterCategory">Categories</h2>
-        <a href="/catalog.html" class="text-xs font-semibold text-primary-600 hover:text-primary-700">View All &rarr;</a>
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white" data-i18n="filterCategory">
+            Browse by Dosage Form
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Find exactly what your doctor prescribed</p>
+        </div>
+        <a href="/catalog.html" class="text-xs font-semibold text-primary-600 hover:text-primary-700 flex items-center gap-1">
+          <span>View All</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
       </div>
+
       <div id="category-chips-container" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        <!-- Rendered by JS or Skeleton -->
-        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex flex-col items-center justify-center card-3d">
-          <span class="text-xs font-medium">Tablet</span>
+        <!-- Rendered by home.js with 3D tilt -->
+        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 skeleton-shimmer"></div>
+        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 skeleton-shimmer"></div>
+        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 skeleton-shimmer"></div>
+        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 skeleton-shimmer"></div>
+      </div>
+    </section>
+
+    <!-- Popular Medicines Section -->
+    <section class="mb-12">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+            Popular & Essential Medicines
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Available now with earliest FEFO batch pricing</p>
         </div>
-        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex flex-col items-center justify-center card-3d">
-          <span class="text-xs font-medium">Syrup</span>
+        <a href="/catalog.html" class="text-xs font-semibold text-primary-600 hover:text-primary-700 flex items-center gap-1">
+          <span>Explore Catalog</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <div id="popular-medicines-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <!-- Rendered by home.js via createMedicineCard -->
+      </div>
+    </section>
+
+    <!-- Trust & Compliance Highlights -->
+    <section class="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-soft">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-6 text-center">
+        Why Millions Trust MediTrack For Pharmacy Needs
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="flex items-start gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1">100% Genuine Medicines</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Direct sourcing from licensed pharmaceutical manufacturers with verified batch records.</p>
+          </div>
         </div>
-        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex flex-col items-center justify-center card-3d">
-          <span class="text-xs font-medium">Injection</span>
+
+        <div class="flex items-start gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Pharmacist Verified</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Every Schedule H prescription is manually reviewed by a registered certified pharmacist.</p>
+          </div>
         </div>
-        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex flex-col items-center justify-center card-3d">
-          <span class="text-xs font-medium">Ointment</span>
-        </div>
-        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex flex-col items-center justify-center card-3d">
-          <span class="text-xs font-medium">Capsule</span>
-        </div>
-        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex flex-col items-center justify-center card-3d">
-          <span class="text-xs font-medium">Drops</span>
-        </div>
-        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex flex-col items-center justify-center card-3d">
-          <span class="text-xs font-medium">Inhaler</span>
-        </div>
-        <div class="h-20 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 flex flex-col items-center justify-center card-3d">
-          <span class="text-xs font-medium">Powder</span>
+
+        <div class="flex items-start gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Smart Refill Alerts</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Automatic push notifications 3 days before medication ends with 1-tap reordering.</p>
+          </div>
         </div>
       </div>
     </section>
+
   </main>
 
   <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 glass border-t border-slate-200 dark:border-slate-800 transition-colors duration-200">
@@ -224,8 +356,8 @@
 
 
 
-  <!-- App Bootstrap JS -->
+  <!-- App Bootstrap & Home Store JS -->
   <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/store/home.js"></script>
 </body>
 </html>
-

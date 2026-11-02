@@ -6,7 +6,7 @@
   <!-- Razorpay Checkout JS -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
-<body class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+<body data-guard="auth" class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
   <!-- @include partials/header.html -->
 
   <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full pb-20 sm:pb-8">
@@ -164,6 +164,7 @@
     </div>
   </main>
 
+  <!-- @include partials/bottom-nav.html -->
   <!-- @include partials/footer.html -->
 
   <!-- Scripts -->

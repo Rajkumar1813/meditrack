@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- @include partials/head.html -->
+</head>
+<body data-guard="auth" class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+  <!-- @include partials/header.html -->
+
+  <!-- Profile Main -->
+  <main class="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 sm:pb-12">
+
+    <!-- User Identity Card -->
+    <section class="card-3d rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-soft mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary-600 to-primary-700 text-white flex items-center justify-center text-2xl font-bold shadow-soft">
+          👤
+        </div>
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 id="profile-name" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              MediTrack User
+            </h1>
+            <span id="profile-role-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800 uppercase">
+              customer
+            </span>
+          </div>
+          <p id="profile-contact" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            +91 0000000000
+          </p>
+        </div>
+      </div>
+
+      <button
+        id="logout-btn"
+        type="button"
+        class="self-start sm:self-auto px-5 py-2.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-300 text-xs font-semibold hover:bg-red-100 dark:hover:bg-red-900/50 transition"
+        data-i18n="logout"
+      >
+        Sign Out
+      </button>
+    </section>
+
+    <!-- Grid Sections: Refills & Saved Addresses -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+      <!-- Active Refills Section -->
+      <section class="space-y-4" id="refills">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white" data-i18n="refillReminders">
+              Refill Reminders
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Scheduled reminders for recurring courses</p>
+          </div>
+        </div>
+        <div id="profile-refills-container" class="space-y-3">
+          <div class="h-24 rounded-2xl bg-slate-200 dark:bg-slate-800 skeleton-shimmer"></div>
+        </div>
+      </section>
+
+      <!-- Saved Addresses Section -->
+      <section class="space-y-4" id="addresses">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white" data-i18n="deliveryAddresses">
+              Delivery Addresses
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Manage saved shipping locations</p>
+          </div>
+          <button
+            id="profile-toggle-address-btn"
+            type="button"
+            class="text-xs font-semibold text-primary-600 hover:text-primary-700"
+            data-i18n="addAddress"
+          >
+            + Add New
+          </button>
+        </div>
+
+        <!-- Add Address Inline Form -->
+        <form id="profile-add-address-form" class="hidden p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-3">
+          <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-2">New Address</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input type="text" id="profile-addr-name" required placeholder="Recipient Name" class="px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none">
+            <input type="tel" id="profile-addr-phone" required placeholder="10-digit Phone" class="px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none">
+          </div>
+          <input type="text" id="profile-addr-line1" required placeholder="Street / House No / Area" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none">
+          <div class="grid grid-cols-3 gap-3">
+            <input type="text" id="profile-addr-city" required placeholder="City" class="px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none">
+            <input type="text" id="profile-addr-state" required placeholder="State" class="px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none">
+            <input type="text" id="profile-addr-pincode" maxlength="6" required placeholder="Pincode" class="px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none">
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="submit" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs shadow-sm">
+              Save Address
+            </button>
+          </div>
+        </form>
+
+        <div id="profile-addresses-container" class="space-y-3">
+          <div class="h-24 rounded-2xl bg-slate-200 dark:bg-slate-800 skeleton-shimmer"></div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Notification Preferences Card -->
+    <section class="card-3d rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-soft mb-8">
+      <div class="mb-4">
+        <h2 class="text-base font-bold text-slate-900 dark:text-white" data-i18n="notificationPreferences">
+          Notification Preferences
+        </h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Control real-time updates and push channels</p>
+      </div>
+
+      <div class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+        <div class="py-3.5 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-slate-900 dark:text-white">Order Status Updates</h3>
+            <p class="text-slate-400 text-[11px]">Real-time push for confirmed, packed, shipped & tracking link.</p>
+          </div>
+          <input type="checkbox" id="pref-orders" checked class="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 cursor-pointer">
+        </div>
+
+        <div class="py-3.5 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-slate-900 dark:text-white">Refill Reminders</h3>
+            <p class="text-slate-400 text-[11px]">Proactive reminder 3 days before your prescribed course ends.</p>
+          </div>
+          <input type="checkbox" id="pref-refills" checked class="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 cursor-pointer">
+        </div>
+
+        <div class="py-3.5 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-slate-900 dark:text-white">Promotional Announcements</h3>
+            <p class="text-slate-400 text-[11px]">Pharmacy health camps, seasonal discounts, and brand updates.</p>
+          </div>
+          <input type="checkbox" id="pref-promo" class="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 cursor-pointer">
+        </div>
+      </div>
+    </section>
+
+    <!-- DPDP Act 2023 Compliance Card -->
+    <section class="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-soft">
+      <h2 class="text-base font-bold text-slate-900 dark:text-white mb-1">
+        Digital Personal Data Protection (DPDP) Act 2023
+      </h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+        Under Indian DPDP Act 2023 regulations, you have full ownership of your personal data, complete portability, and the Right to Erasure.
+      </p>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button
+          id="dpdp-export-btn"
+          type="button"
+          class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold flex items-center gap-2 transition"
+        >
+          <span>📥</span>
+          <span>Download Personal Data Archive (JSON)</span>
+        </button>
+
+        <button
+          id="dpdp-delete-btn"
+          type="button"
+          class="px-4 py-2.5 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-300 text-xs font-semibold hover:bg-red-100 transition"
+        >
+          Request Right to Erasure / Delete Account
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- @include partials/bottom-nav.html -->
+  <!-- @include partials/footer.html -->
+
+  <!-- App Bootstrap & Profile Store JS -->
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/store/profile.js"></script>
+</body>
+</html>
+

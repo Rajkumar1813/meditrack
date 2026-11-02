@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- @include partials/head.html -->
+</head>
+<body class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+  <!-- @include partials/header.html -->
+
+  <!-- Medicine Detail Main -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full pb-24 sm:pb-12">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6" aria-label="Breadcrumb">
+      <a href="/index.html" class="hover:text-primary-600 transition" data-i18n="home">Home</a>
+      <span>/</span>
+      <a href="/catalog.html" class="hover:text-primary-600 transition" data-i18n="catalog">Catalog</a>
+      <span>/</span>
+      <span id="breadcrumb-medicine-name" class="text-slate-900 dark:text-white font-medium truncate max-w-xs sm:max-w-md">
+        Medicine Detail
+      </span>
+    </nav>
+
+    <!-- Medicine Detail Hero Card -->
+    <section id="medicine-detail-container" class="mb-12">
+      <!-- Loading Skeleton Placeholder -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 animate-pulse">
+        <div class="h-96 rounded-3xl bg-slate-200 dark:bg-slate-800 skeleton-shimmer"></div>
+        <div class="space-y-4">
+          <div class="h-8 bg-slate-200 dark:bg-slate-800 rounded-xl w-3/4 skeleton-shimmer"></div>
+          <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2 skeleton-shimmer"></div>
+          <div class="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl skeleton-shimmer"></div>
+          <div class="h-14 bg-slate-200 dark:bg-slate-800 rounded-2xl skeleton-shimmer"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Same-Salt Alternatives Section -->
+    <section id="alternatives-section" class="pt-8 border-t border-slate-200 dark:border-slate-800">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white" data-i18n="sameSaltAlternatives">
+            Same-Composition Alternatives
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            Compare verified therapeutic substitutes containing identical active salts
+          </p>
+        </div>
+      </div>
+
+      <div id="alternatives-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <!-- Rendered by medicine.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- @include partials/bottom-nav.html -->
+  <!-- @include partials/footer.html -->
+
+  <!-- App Bootstrap & Medicine Store JS -->
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/store/medicine.js"></script>
+</body>
+</html>
+
