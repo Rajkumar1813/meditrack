@@ -11,7 +11,7 @@
 [![MySQL 8](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-6.x%2F7.x-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/)
 [![Flutter](https://img.shields.io/badge/Flutter-Ready-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/)
-[![Tests Passing](https://img.shields.io/badge/Tests-224%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
+[![Tests Passing](https://img.shields.io/badge/Tests-235%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-blue.svg)](#)
 
 </div>
@@ -666,6 +666,101 @@ The cross-platform mobile client (`mobile/`) is built on **Flutter 3.x (Android-
 - **Push Notifications & Android Integration**:
   - `FcmService`: Firebase Cloud Messaging token retrieval, registration to backend `POST /api/v1/devices`, high-importance Android notification channel (`meditrack_notifications`), foreground notification banners via `flutter_local_notifications`, and deep-link payload routing on notification tap.
   - Android package configured as `com.meditrack.app` with dynamic app label from `strings.xml` and adaptive launcher icons generated via `flutter_launcher_icons`.
+
+---
+
+## 📲 Customer & Owner Mobile Applications (Phase 13)
+
+Phase 13 delivers complete native Flutter screens and workflows for both **Customer Storefront** and **Pharmacy Owner / Pharmacist OS** modes, adopting the identical Emerald brand visual identity, 3D perspective cards, and responsive states as the web application:
+
+### 🛍️ Customer Experience
+- **Home Dashboard (`HomeScreen`)**:
+  - Global debounced search bar with tap-to-suggest.
+  - Categories horizontal carousel with dynamic navigation.
+  - Featured medicines grid with quick Add-to-Cart.
+  - **Refill Reminders Strip**: Displays pending course refills with 1-tap reorder and snooze action sheets.
+  - 5-tab persistent bottom navigation (Home, Catalog, Prescriptions, Orders, Profile) with real-time cart badge.
+- **Search Suggestions Modal (`search_suggest_modal.dart`)**:
+  - 250ms debounced type-ahead querying `GET /api/v1/search?q=...`.
+  - Grouped search results: matching brand medications and active salt ingredients.
+- **Medicine Catalog (`CatalogScreen`)**:
+  - Grid vs List view toggle.
+  - Filter bottom sheet (category pills, Rx-only switch, in-stock only switch).
+  - Cursor-based infinite scrolling with pull-to-refresh.
+  - Local `SharedPreferences` cache for offline browsing.
+- **Medicine Details (`MedicineDetailScreen`)**:
+  - Schedule H Rx requirement warning badge.
+  - FEFO batch pricing and unit stock display.
+  - Active salt composition chips.
+  - Same-salt generic therapeutic alternatives carousel with instant price-comparison savings.
+  - Quantity increment/decrement stepper.
+- **Cart & Bill Summary (`CartScreen`)**:
+  - Item quantities, unit MRP, discounted price, and total savings calculation.
+  - Prescription requirement warning alert if any cart item requires a prescription.
+  - Item removal and empty cart state.
+- **Checkout & Prescription Upload (`CheckoutScreen`)**:
+  - Saved address selector with modal address creation (`AddressModel`).
+  - Mandatory Camera/Gallery prescription upload with client-side image compression (`image_picker`) if Rx medications are present in the cart.
+  - Payment method toggle: **Cash on Delivery (COD)** or **Razorpay Checkout** (UPI, Credit/Debit Cards, NetBanking).
+  - `Idempotency-Key` protected order submission (`POST /api/v1/orders`).
+- **Orders & Tracking (`OrdersScreen` & `OrderDetailScreen`)**:
+  - Order timeline stepper (Pending -> Confirmed -> Packed -> Shipped -> Delivered).
+  - Courier partner name and live AWB/tracking number ribbon.
+  - Ordered items breakdown with unit pricing and tax breakdown.
+  - Dompdf GST invoice PDF download trigger.
+  - Order cancellation modal for eligible pending orders.
+  - 1-tap reorder flow restoring previous cart items.
+- **Prescriptions Management (`PrescriptionsScreen`)**:
+  - Customer prescription upload history with status chips (`PENDING`, `APPROVED`, `REJECTED`).
+  - Pharmacist registered stamp and license details display on approved prescriptions.
+  - Rejection explanation banner for rejected uploads.
+- **Notifications & Deep-Linking (`NotificationsScreen`)**:
+  - In-app notification center with cursor pagination.
+  - Mark-as-read trigger.
+  - Tap-to-deep-link navigation directly to order details (`/orders/:id`).
+- **Customer Profile (`ProfileScreen`)**:
+  - Full Address book CRUD.
+  - Language toggle between English (`en`) and Hindi (`hi`).
+  - Light/Dark theme switch.
+  - Secure session logout and device token revocation.
+
+### 🛡️ Pharmacy Owner / Pharmacist Mode
+- **Operating System Dashboard (`OwnerScreen`)**:
+  - 6 Key Performance Indicator (KPI) stat cards: Total Medicines, Stock Units, Low Stock, Expiring in 30d, Orders Today, and Revenue Today.
+  - **Category Donut Chart**: Lightweight custom canvas painter (`_DonutChartPainter`) rendering category percentages and legend without heavy third-party chart dependencies.
+  - **Expiry Health Monitor**: Multi-stage color-coded linear distribution bars (Safe >90d, Warning 30-90d, Urgent <30d, Expired).
+- **Inventory Management (`InventoryScreen`)**:
+  - Live search and filter across medicines and active batches.
+  - "Add Medicine & Batch" modal dialog with strict client-side & server validation (name, category, price, MRP $\ge$ price, batch number, initial stock, manufacturing & expiry dates).
+- **Expiring & Expired Batches (`ExpiringScreen`)**:
+  - 30-Day and 90-Day tabs for imminent expirations with fast discount and vendor return actions.
+  - Expired batch tab calculating dead-stock write-off loss and safe disposal logging.
+- **Racks & Storage Locations (`RacksScreen`)**:
+  - Physical rack cards, shelf capacities, and bottom sheet inspecting medicines stored in each shelf.
+- **Orders Pipeline (`OwnerOrdersScreen`)**:
+  - Filter chips: All, Pending, Confirmed, Packed, Shipped, Delivered, Cancelled.
+  - Status transition modal: Update status, specify courier partner and tracking AWB number, and add internal notes.
+- **Prescription Verification (`RxReviewScreen`)**:
+  - Pending prescription inspection queue.
+  - **Interactive Image Inspector**: Full pan, pinch-to-zoom ($0.5\times$ to $4.0\times$), 90° clockwise rotation button, and zoom reset.
+  - Pharmacist review actions:
+    - **Approve & Stamp**: Applies registered pharmacist verification stamp and sets prescription validity (default 30 days).
+    - **Reject**: Quick-select rejection reasons (blurry image, expired Rx, doctor signature missing, medicine mismatch) with custom notes.
+
+### 🧪 Verification & Acceptance Metrics
+- **Flutter Analyze**: `0 warnings, 0 errors, 0 issues` (`flutter analyze` exit code 0).
+- **Flutter Widget & Integration Tests**: 11/11 tests passing (`flutter test` exit code 0):
+  1. Customer COD Checkout flow places order and navigates to Order Detail.
+  2. Owner Add-Medicine workflow validates inputs and adds item to inventory.
+  3. Push notification payload tap triggers router deep-link to `/orders/7001`.
+  4. AppRouter registers all customer and owner route paths.
+  5. Authentication mode toggle (phone vs email).
+  6. Phone number input validation.
+  7. 429 Too Many Requests countdown timer.
+  8. OTP screen 6-digit input rendering.
+  9. Customer role-based redirect.
+  10. Pharmacist role-based dashboard.
+  11. Card3D reduced-motion accessibility.
 
 ---
 

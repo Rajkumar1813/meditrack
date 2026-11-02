@@ -58,5 +58,8 @@ class PrefStorage {
   Future<void> setCachedBrand(Map<String, dynamic> brandMap) async {
     await _prefs.setString(_keyBrandJson, jsonEncode(brandMap));
   }
+
+  String? getPrefString(String key) => _prefs.getString(key);
+  Future<void> setPrefString(String key, String value) => _prefs.setString(key, value);
 }
 
