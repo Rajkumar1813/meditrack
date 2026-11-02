@@ -11,7 +11,7 @@
 [![MySQL 8](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-6.x%2F7.x-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/)
 [![Flutter](https://img.shields.io/badge/Flutter-Ready-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/)
-[![Tests Passing](https://img.shields.io/badge/Tests-214%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
+[![Tests Passing](https://img.shields.io/badge/Tests-217%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-blue.svg)](#)
 
 </div>
@@ -34,6 +34,9 @@
 - [Directory Structure](#-directory-structure)
 - [Getting Started & Local Setup](#-getting-started--local-setup)
 - [Testing & Verification](#-testing--verification)
+- [Customer Web Storefront Architecture (Phase 10)](#-customer-web-storefront-architecture-phase-10)
+- [Admin Inventory OS & Pharmacy Management (Phase 11)](#-admin-inventory-os--pharmacy-management-phase-11)
+- [License & Compliance Notice](#-license--compliance-notice)
 
 ---
 
@@ -511,21 +514,24 @@ cd frontend
 npm run test:e2e
 ```
 ```
-  ok  1 complete flow: login -> search -> cart -> COD checkout -> order detail page (34.7s)
-  ok  2 XSS immunity: medicine with <script> tag renders as safe text, never executes (1.4s)
-  ok  3 3D perspective card tilt honors prefers-reduced-motion (1.3s)
-  ok  4 mode toggle switches between mobile number and email (2.5s)
-  ok  5 validates invalid mobile number with error message (2.2s)
-  ok  6 complete OTP request and admin login redirect flow (2.9s)
-  ok  7 customer role redirects to store homepage (32.6s)
-  ok  8 rate limit 429 shows countdown banner and disables buttons (1.6s)
-  ok  9 home page renders brand name, header, and categories (3.6s)
-  ok 10 theme toggle switches dark mode class on html element (2.9s)
-  ok 11 language toggle switches locale and updates labels (2.4s)
-  ok 12 login page displays OTP request form with 3D card layout (2.1s)
-  ok 13 admin page redirects unauthenticated users to login (2.0s)
+  ok  1 role-based menu: pharmacist has restricted settings, admin has full access (2.8s)
+  ok  2 dashboard visual parity: 6 stat cards, inline SVG donut and bar charts (2.3s)
+  ok  3 complete pharmacy workflow: add medicine -> expiring -> order fulfillment (pending to shipped) (15.2s)
+  ok  4 complete flow: login -> search -> cart -> COD checkout -> order detail page (3.7s)
+  ok  5 XSS immunity: medicine with <script> tag renders as safe text, never executes (1.2s)
+  ok  6 3D perspective card tilt honors prefers-reduced-motion (1.0s)
+  ok  7 mode toggle switches between mobile number and email (1.2s)
+  ok  8 validates invalid mobile number with error message (984ms)
+  ok  9 complete OTP request and admin login redirect flow (2.3s)
+  ok 10 customer role redirects to store homepage (2.2s)
+  ok 11 rate limit 429 shows countdown banner and disables buttons (1.2s)
+  ok 12 home page renders brand name, header, and categories (1.2s)
+  ok 13 theme toggle switches dark mode class on html element (1.2s)
+  ok 14 language toggle switches locale and updates labels (1.3s)
+  ok 15 login page displays OTP request form with 3D card layout (922ms)
+  ok 16 admin page redirects unauthenticated users to login (1.2s)
 
-  13 passed (100% clean)
+  16 passed (100% clean across storefront & admin)
 ```
 
 ---
@@ -551,6 +557,62 @@ The storefront is crafted in `frontend/src/` with a zero-framework architecture 
   - Debounced auto-suggest search (`js/ui/search-suggest.js`) with medicine & salt grouping, safe text highlighting, and `AbortController` cancellation.
   - Zero dynamic `innerHTML`: 100% of DOM nodes are rendered safely using text and element builders (`el()`, `text()`, `append()`, `setText()`), eliminating XSS vulnerabilities.
   - Bilingual English/Hindi toggle with dynamic dictionary loading.
+
+---
+
+## 🏥 Admin Inventory OS & Pharmacy Management (Phase 11)
+
+The pharmacy back-office operating system is implemented under `frontend/src/admin/` and powered by ES6 store modules in `frontend/src/js/admin/`. It provides full layout, workflow, and visual parity with the reference design (`reference/Meditrack.html`) using our unified Emerald brand tokens:
+
+- **10 Dedicated Operating Screens**:
+  1. **Dashboard (`admin/index.html` & `js/admin/dashboard.js`)**:
+     - 6 primary stat cards (Total medicines, Total units in stock, Low stock count, Expiring in 30 days, Expired units, and Total stock valuation based on `purchase_price * qty`).
+     - Orders Today count + Today's Revenue counter.
+     - Inline SVG Category Donut chart and Expiry Distribution bar chart (`js/ui/charts.js`, zero external chart library overhead).
+     - Live critical alerts feed and recently added inventory table.
+  2. **Medicines Management (`admin/medicines.html` & `js/admin/medicines.js`)**:
+     - Responsive Table and Card layout switchers with search text highlighting.
+     - Server-side pagination with "Showing X to Y of Z items" indicators.
+     - Medicine Add/Edit modal with comprehensive field validations (brand/generic names, category, prescription flags, GST rates) and server validation error mapping.
+     - Slide-over Batch Drawer: view active batches per medicine, add new batches (batch number, expiry > mfg date validation, MRP ≥ purchase price checks), and assign rack/shelf locations.
+     - Direct CSV inventory export and 2-step CSV import modal (file upload → per-row preview validation report with error flags → background queue commit).
+     - Clean print stylesheet (`@media print`) for offline physical stock audits.
+  3. **Expiring Soon (`admin/expiring.html` & `js/admin/expiring.js`)**:
+     - 30-day and 90-day expiry threshold filtering tabs.
+     - Urgent batch cards displaying days remaining, FEFO rank, and action buttons (promotional discount, vendor return, hazardous disposal).
+  4. **Expired Batches (`admin/expired.html` & `js/admin/expired.js`)**:
+     - Expired stock ledger with calculated dead stock loss value.
+     - Direct return-to-distributor and safe biomedical disposal logging.
+  5. **Racks & Locations (`admin/racks.html` & `js/admin/racks.js`)**:
+     - Physical warehouse & dispensary rack organizer with shelf listings.
+     - Slide-over drawer displaying all medicines and batches physically located on each rack.
+  6. **Orders Fulfillment Center (`admin/orders.html` & `js/admin/orders.js`)**:
+     - Real-time order pipeline with status filtering (All, Pending, Confirmed, Packed, Shipped, Delivered, Cancelled).
+     - Slide-over order inspector with customer address snapshot, ordered batches, payment details, and complete status timeline.
+     - Status transition modal enforcing valid state transitions with courier selection, tracking number, and customer notes.
+  7. **Prescription Verification Queue (`admin/prescriptions.html` & `js/admin/prescriptions.js`)**:
+     - Review queue for customer-uploaded doctor prescriptions.
+     - Interactive Prescription Viewer: zoom in/out, 90° clockwise rotation, pan, and reset on high-res HMAC signed URLs.
+     - Digital clinical sign-off: Approve with validity period (`valid_until`) and registered pharmacist license number stamp, or Reject with mandatory reason code.
+  8. **Customer Management & DPDP (`admin/customers.html` & `js/admin/customers.js`)**:
+     - Customer directory displaying total orders and Lifetime Value (LTV).
+     - Customer profile drawer with order history and saved delivery addresses.
+     - Instant account suspension / unblocking with real-time JWT revocation.
+     - DPDP Act 2023 portable personal data JSON export.
+  9. **GST Tax Invoices (`admin/invoices.html` & `js/admin/invoices.js`)**:
+     - Complete archive of gap-free sequenced tax invoices (`INV-YYYY-XXXXXX`).
+     - Search by invoice ID, order number, or customer phone/name.
+     - Direct Dompdf PDF download and SMS/email invoice link resend triggers.
+  10. **Store Settings & Backup (`admin/settings.html` & `js/admin/settings.js`)**:
+      - Restricted strictly to `admin` role.
+      - Pharmacy profile: Shop name, legal entity, owner details, GSTIN, Drug License number, and Pharmacist registration.
+      - Operational thresholds: Low stock threshold, base delivery fee, free delivery order minimum.
+      - On-demand database backup: triggers server-side `mysqldump` and produces a secure, signed download URL.
+- **Role-Based Access Control (RBAC)**:
+  - Allowed roles: `admin`, `pharmacist`, `staff`.
+  - Strict UI privilege gating: elements and sidebar links marked with `data-role-required="admin"` (e.g. Master Settings, Customer blocking, System backups) are hidden for non-admin staff, and route guards redirect unauthorized role attempts to `/admin/index.html`.
+- **Absolute XSS Immunity**:
+  - Exactly 0 usages of `.innerHTML =` across all admin JavaScript code. All tables, cards, badges, and modals are built purely via safe DOM constructors (`el`, `setText`, `append`).
 
 ---
 

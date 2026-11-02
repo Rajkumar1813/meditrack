@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- @include partials/head.html -->
+</head>
+<body data-guard="auth" data-roles="admin,pharmacist,staff" class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex font-sans transition-colors duration-200">
+  <!-- @include partials/admin-sidebar.html -->
+
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- @include partials/admin-topbar.html -->
+
+    <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white" data-i18n="orders">Orders & Fulfillment</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Process pharmacy customer orders, track courier dispatches, and manage status transitions.
+          </p>
+        </div>
+      </div>
+
+      <!-- Filters Bar -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Status Filter -->
+          <select id="filter-order-status" class="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+            <option value="">All Fulfillment Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="packed">Packed</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+
+          <!-- Payment Filter -->
+          <select id="filter-payment-status" class="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+            <option value="">All Payment Statuses</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Payment Pending</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+
+        <div class="w-full sm:w-64">
+          <input
+            type="search"
+            id="filter-order-search"
+            placeholder="Search order #, customer phone..."
+            class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400"
+          />
+        </div>
+      </div>
+
+      <!-- Orders Table -->
+      <section class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+              <tr>
+                <th class="py-3.5 px-4 font-semibold">Order ID</th>
+                <th class="py-3.5 px-4 font-semibold">Customer</th>
+                <th class="py-3.5 px-4 font-semibold">Date & Time</th>
+                <th class="py-3.5 px-4 font-semibold text-right">Items</th>
+                <th class="py-3.5 px-4 font-semibold text-right">Total</th>
+                <th class="py-3.5 px-4 font-semibold text-center">Payment</th>
+                <th class="py-3.5 px-4 font-semibold text-center">Fulfillment</th>
+                <th class="py-3.5 px-4 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <tr>
+                <td colspan="8" class="p-8 text-center text-slate-400">Loading orders...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Order Detail & Timeline Drawer -->
+  <div id="order-drawer" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex justify-end">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-xl h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white" id="drawer-order-id">Order Details</h3>
+          <p class="text-xs text-slate-400" id="drawer-order-date">Created on -</p>
+        </div>
+        <button id="btn-close-order-drawer" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-5 space-y-6 text-xs" id="drawer-order-content">
+        <!-- Delivery Address -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Delivery Address</span>
+          <div class="text-slate-800 dark:text-slate-200 font-medium" id="drawer-shipping-address">-</div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ordered Items</span>
+          <div class="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden" id="drawer-items-container"></div>
+        </div>
+
+        <!-- Fulfillment Stepper Timeline -->
+        <div class="space-y-3">
+          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Fulfillment Timeline</span>
+          <div class="space-y-2.5 pl-2" id="drawer-timeline-container"></div>
+        </div>
+      </div>
+
+      <!-- Drawer Bottom: Status Action Button -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+        <span class="text-xs text-slate-500" id="drawer-current-status-label">Current: Pending</span>
+        <button id="btn-open-status-modal" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs shadow-sm transition">
+          Update Fulfillment Status
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Change Modal -->
+  <div id="status-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Update Order Status</h3>
+        <button id="btn-close-status-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="form-update-status" class="space-y-4 pt-4 text-xs">
+        <div>
+          <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Target Status *</label>
+          <select id="update-order-status" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <option value="confirmed">Confirmed (Order Accepted)</option>
+            <option value="packed">Packed (Medicines In Package)</option>
+            <option value="shipped">Shipped (Handed to Courier)</option>
+            <option value="delivered">Delivered (Handed to Customer)</option>
+            <option value="cancelled">Cancelled (Return Stock)</option>
+          </select>
+        </div>
+
+        <div id="courier-fields" class="space-y-3">
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Courier Partner</label>
+            <input type="text" id="update-courier" placeholder="e.g. Blue Dart, Delhivery, Local Runner" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Tracking Number / AWB</label>
+            <input type="text" id="update-tracking" placeholder="e.g. BLUEDART-8823190" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Internal Note</label>
+          <textarea id="update-note" rows="2" placeholder="e.g. Verified prescription by pharmacist" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" id="btn-cancel-status-modal" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-lift transition">
+            Save Status Transition
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/admin/orders.js"></script>
+</body>
+</html>
+

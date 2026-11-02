@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- @include partials/head.html -->
+</head>
+<body data-guard="auth" data-roles="admin,pharmacist,staff" class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex font-sans transition-colors duration-200">
+  <!-- @include partials/admin-sidebar.html -->
+
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- @include partials/admin-topbar.html -->
+
+    <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white" data-i18n="expired">Expired Inventory</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Expired batches cannot be dispensed under Indian pharmacy law. Mark returned to distributor or record safe disposal.
+          </p>
+        </div>
+      </div>
+
+      <!-- Expired Batches Table -->
+      <section class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+              <tr>
+                <th class="py-3.5 px-4 font-semibold">Medicine / Generic</th>
+                <th class="py-3.5 px-4 font-semibold">Batch No</th>
+                <th class="py-3.5 px-4 font-semibold">Expiry Date</th>
+                <th class="py-3.5 px-4 font-semibold text-right">Units</th>
+                <th class="py-3.5 px-4 font-semibold text-right">Estimated Value</th>
+                <th class="py-3.5 px-4 font-semibold">Location</th>
+                <th class="py-3.5 px-4 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="expired-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <tr>
+                <td colspan="7" class="p-8 text-center text-slate-400">Loading expired inventory...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/admin/expired.js"></script>
+</body>
+</html>
+

@@ -2,31 +2,34 @@ import { api, setTokenProvider } from './api.js';
 
 let accessToken = null;
 let currentUser = null;
-let isInitialized = false;
+let initPromise = null;
 
 export const auth = {
   /**
    * Initialize authentication on page load via silent refresh.
    */
   async init() {
-    if (isInitialized) {
+    if (initPromise) {
+      return initPromise;
+    }
+
+    initPromise = (async () => {
+      setTokenProvider(
+        () => accessToken,
+        () => auth.refreshToken()
+      );
+
+      try {
+        await auth.refreshToken();
+      } catch (_) {
+        accessToken = null;
+        currentUser = null;
+      }
+
       return currentUser;
-    }
-    isInitialized = true;
+    })();
 
-    setTokenProvider(
-      () => accessToken,
-      () => auth.refreshToken()
-    );
-
-    try {
-      await auth.refreshToken();
-    } catch (_) {
-      accessToken = null;
-      currentUser = null;
-    }
-
-    return currentUser;
+    return initPromise;
   },
 
   getToken() {
@@ -87,6 +90,7 @@ export const auth = {
     } catch (_) {}
     accessToken = null;
     currentUser = null;
+    initPromise = null;
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('meditrack:auth-changed', { detail: { user: null } }));
       window.location.href = '/login.html';

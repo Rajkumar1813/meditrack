@@ -101,5 +101,8 @@
   "applyFilters": "Apply Filters",
   "priceLowToHigh": "Price: Low to High",
   "priceHighToLow": "Price: High to Low",
-  "nameAsc": "Name: A to Z"
+  "nameAsc": "Name: A to Z",
+  "prescriptions": "Prescriptions",
+  "customers": "Customers",
+  "invoices": "Invoices"
 }

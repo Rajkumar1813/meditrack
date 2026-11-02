@@ -104,3 +104,26 @@
     animation: none !important;
   }
 }
+
+/* Print View Styles */
+@media print {
+  aside,
+  header,
+  #admin-logout-btn,
+  .no-print,
+  button:not(.allow-print) {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}

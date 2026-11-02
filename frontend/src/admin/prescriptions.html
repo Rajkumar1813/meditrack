@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- @include partials/head.html -->
+</head>
+<body data-guard="auth" data-roles="admin,pharmacist,staff" class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex font-sans transition-colors duration-200">
+  <!-- @include partials/admin-sidebar.html -->
+
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- @include partials/admin-topbar.html -->
+
+    <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white" data-i18n="prescriptionReview">Prescription Verification Queue</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Review doctor prescriptions under Indian Pharmacy Regulations before dispensing Schedule H/H1 medications.
+          </p>
+        </div>
+
+        <div class="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+          <button id="rx-filter-pending" class="px-3.5 py-1.5 font-bold rounded-lg bg-white dark:bg-slate-900 text-primary-600 dark:text-primary-400 shadow-sm transition">
+            Pending Queue
+          </button>
+          <button id="rx-filter-all" class="px-3.5 py-1.5 font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 transition">
+            All Prescriptions
+          </button>
+        </div>
+      </div>
+
+      <!-- Prescriptions Table -->
+      <section class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+              <tr>
+                <th class="py-3.5 px-4 font-semibold">Rx ID</th>
+                <th class="py-3.5 px-4 font-semibold">Customer</th>
+                <th class="py-3.5 px-4 font-semibold">Uploaded Date</th>
+                <th class="py-3.5 px-4 font-semibold text-center">Files</th>
+                <th class="py-3.5 px-4 font-semibold text-center">Status</th>
+                <th class="py-3.5 px-4 font-semibold text-right">Review Action</th>
+              </tr>
+            </thead>
+            <tbody id="prescriptions-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <tr>
+                <td colspan="6" class="p-8 text-center text-slate-400">Loading prescription queue...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Prescription Review & Pan/Zoom Modal -->
+  <div id="rx-review-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-5xl w-full h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-[slideIn_0.2s_ease]">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-rx-title">Prescription Review</h3>
+          <p class="text-xs text-slate-400" id="modal-rx-customer">Uploaded by -</p>
+        </div>
+        <button id="btn-close-rx-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Main Review Area: Image Viewer on Left, Decision Form on Right -->
+      <div class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+        <!-- Interactive Image Viewer with Pan & Zoom & Rotate -->
+        <div class="flex-1 bg-slate-950 relative flex flex-col items-center justify-center overflow-hidden select-none">
+          <!-- Zoom & Rotate Toolbar -->
+          <div class="absolute top-4 left-4 z-10 flex items-center gap-1.5 p-1 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-white text-xs">
+            <button id="btn-zoom-in" class="p-1.5 hover:bg-white/20 rounded-lg transition" title="Zoom In">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
+            </button>
+            <button id="btn-zoom-out" class="p-1.5 hover:bg-white/20 rounded-lg transition" title="Zoom Out">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
+            </button>
+            <button id="btn-rotate" class="p-1.5 hover:bg-white/20 rounded-lg transition" title="Rotate 90°">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+            <button id="btn-reset-view" class="p-1.5 hover:bg-white/20 rounded-lg transition" title="Reset View">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            </button>
+          </div>
+
+          <!-- Image Container -->
+          <div id="rx-image-stage" class="w-full h-full flex items-center justify-center p-4 cursor-grab active:cursor-grabbing overflow-hidden">
+            <img id="rx-preview-image" src="" alt="Prescription" class="max-h-full max-w-full object-contain transition-transform duration-100 ease-out origin-center" />
+          </div>
+        </div>
+
+        <!-- Pharmacist Decision Panel -->
+        <div class="w-full md:w-80 p-6 bg-white dark:bg-slate-900 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 flex flex-col justify-between overflow-y-auto text-xs space-y-4">
+          <form id="form-rx-decision" class="space-y-4">
+            <div>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Verification Decision *</label>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="rx_action" value="approve" checked class="text-emerald-600 focus:ring-emerald-500" />
+                  <span class="font-bold text-emerald-700 dark:text-emerald-300">Approve</span>
+                </label>
+                <label class="p-2.5 rounded-xl border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20 flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="rx_action" value="reject" class="text-red-600 focus:ring-red-500" />
+                  <span class="font-bold text-red-700 dark:text-red-300">Reject</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Valid Until Date (if approved) -->
+            <div id="rx-valid-group">
+              <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Valid Until (For Refills)</label>
+              <input type="date" id="rx-valid-until" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+            </div>
+
+            <!-- Notes / Reason -->
+            <div>
+              <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Pharmacist Notes / Rejection Reason</label>
+              <textarea id="rx-review-reason" rows="3" placeholder="e.g. Verified doctor registration number and patient details" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></textarea>
+            </div>
+
+            <!-- Pharmacist Stamp Notice -->
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-[11px] text-slate-500 space-y-1">
+              <div class="font-semibold text-slate-700 dark:text-slate-300">Pharmacist Digital Signature Stamp</div>
+              <div>Your registered name and pharmacy license will be stamped on this verification record.</div>
+            </div>
+
+            <div class="pt-2">
+              <button type="submit" id="btn-submit-review" class="w-full py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-lift transition">
+                Submit Review Decision
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/admin/prescriptions.js"></script>
+</body>
+</html>
+

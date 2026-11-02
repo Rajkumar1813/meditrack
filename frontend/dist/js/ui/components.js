@@ -36,11 +36,10 @@ export function createMedicineCard(med, { onAddToCart = null } = {}) {
   const stockBadge = el(
     'span',
     {
-      className: `text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-        inStock
-          ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-          : 'bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400'
-      }`,
+      className: `text-[11px] font-semibold px-2 py-0.5 rounded-full ${inStock
+        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+        : 'bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400'
+        }`,
     },
     [inStock ? 'In Stock' : 'Out of Stock']
   );
@@ -129,11 +128,10 @@ export function createMedicineCard(med, { onAddToCart = null } = {}) {
     {
       type: 'button',
       disabled: !inStock,
-      className: `px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-        inStock
-          ? 'bg-primary-600 hover:bg-primary-700 active:scale-95 text-white shadow-sm'
-          : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
-      }`,
+      className: `px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${inStock
+        ? 'bg-primary-600 hover:bg-primary-700 active:scale-95 text-white shadow-sm'
+        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+        }`,
       ariaLabel: `Add ${med.name} to cart`,
       onClick: async (e) => {
         e.preventDefault();

@@ -41,6 +41,8 @@ test.describe('Login & OTP Flow E2E Tests', () => {
   });
 
   test('complete OTP request and admin login redirect flow', async ({ page }) => {
+    let isAuthenticated = false;
+
     // Intercept backend OTP request API
     await page.route('**/api/v1/auth/otp/request', async (route) => {
       await route.fulfill({
@@ -60,6 +62,7 @@ test.describe('Login & OTP Flow E2E Tests', () => {
 
     // Intercept backend OTP verify API
     await page.route('**/api/v1/auth/otp/verify', async (route) => {
+      isAuthenticated = true;
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -77,6 +80,63 @@ test.describe('Login & OTP Flow E2E Tests', () => {
               token_type: 'Bearer',
               expires_in: 900,
             },
+          },
+        }),
+      });
+    });
+
+    // Intercept refresh and dashboard endpoints when navigating to admin index
+    await page.route('**/api/v1/auth/refresh', async (route) => {
+      if (!isAuthenticated) {
+        await route.fulfill({
+          status: 401,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: false, message: 'Unauthenticated' }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            user: {
+              id: 1,
+              name: 'Ramesh Sharma',
+              role: 'admin',
+              phone: '+919811111111',
+            },
+            tokens: {
+              access_token: 'fake-admin-jwt-token',
+              token_type: 'Bearer',
+              expires_in: 900,
+            },
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/v1/admin/dashboard/stats', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            total_medicines: 120,
+            total_units: 450,
+            low_stock_count: 3,
+            expiring_30_count: 2,
+            expired_count: 1,
+            total_inventory_value: 45000,
+            orders_today: 4,
+            revenue_today: 2800,
+            category_distribution: [],
+            expiry_distribution: { safe: 100, expiring_90d: 15, expiring_30d: 4, expired: 1 },
+            recently_added: [],
+            active_alerts: [],
           },
         }),
       });

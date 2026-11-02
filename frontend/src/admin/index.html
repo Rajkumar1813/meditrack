@@ -10,68 +10,117 @@
     <!-- @include partials/admin-topbar.html -->
 
     <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
-      <!-- 6 Stat Cards from Reference UI -->
-      <section class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <!-- Active Alerts -->
+      <section id="active-alerts-container"></section>
+
+      <!-- 6 Stat Cards from Reference UI + Orders Today/Revenue -->
+      <section class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
         <!-- Total Medicines -->
         <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm card-3d">
-          <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider" data-i18n="totalMedicines">
+          <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider" data-i18n="totalMedicines">
             Total Medicines
           </div>
-          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1" id="stat-total-medicines">-</div>
+          <div class="text-xl font-bold text-slate-900 dark:text-white mt-1" id="stat-total-medicines">-</div>
         </div>
 
         <!-- Total Units -->
         <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm card-3d">
-          <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider" data-i18n="totalQty">
+          <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider" data-i18n="totalQty">
             Total Units
           </div>
-          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1" id="stat-total-units">-</div>
+          <div class="text-xl font-bold text-slate-900 dark:text-white mt-1" id="stat-total-units">-</div>
         </div>
 
         <!-- Low Stock -->
         <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 shadow-sm card-3d">
-          <div class="text-[11px] font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider" data-i18n="lowStock">
+          <div class="text-[10px] font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider" data-i18n="lowStock">
             Low Stock
           </div>
-          <div class="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-1" id="stat-low-stock">-</div>
+          <div class="text-xl font-bold text-amber-700 dark:text-amber-300 mt-1" id="stat-low-stock">-</div>
         </div>
 
         <!-- Expiring in 30d -->
         <div class="p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/40 shadow-sm card-3d">
-          <div class="text-[11px] font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wider" data-i18n="expiring30">
-            Expiring in 30d
+          <div class="text-[10px] font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wider" data-i18n="expiring30">
+            Expiring (30d)
           </div>
-          <div class="text-2xl font-bold text-orange-700 dark:text-orange-300 mt-1" id="stat-expiring-30">-</div>
+          <div class="text-xl font-bold text-orange-700 dark:text-orange-300 mt-1" id="stat-expiring-30">-</div>
         </div>
 
         <!-- Expired -->
         <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 shadow-sm card-3d">
-          <div class="text-[11px] font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider" data-i18n="expiredCount">
+          <div class="text-[10px] font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider" data-i18n="expiredCount">
             Expired
           </div>
-          <div class="text-2xl font-bold text-red-700 dark:text-red-300 mt-1" id="stat-expired">-</div>
+          <div class="text-xl font-bold text-red-700 dark:text-red-300 mt-1" id="stat-expired">-</div>
         </div>
 
         <!-- Stock Value -->
         <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 shadow-sm card-3d">
-          <div class="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider" data-i18n="totalValue">
+          <div class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider" data-i18n="totalValue">
             Stock Value
           </div>
-          <div class="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1" id="stat-stock-value">-</div>
+          <div class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-1 truncate" id="stat-stock-value">-</div>
+        </div>
+
+        <!-- Orders Today -->
+        <div class="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 shadow-sm card-3d">
+          <div class="text-[10px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+            Orders Today
+          </div>
+          <div class="text-xl font-bold text-blue-700 dark:text-blue-300 mt-1" id="stat-orders-today">-</div>
+        </div>
+
+        <!-- Revenue Today -->
+        <div class="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/40 shadow-sm card-3d">
+          <div class="text-[10px] font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
+            Revenue Today
+          </div>
+          <div class="text-xl font-bold text-purple-700 dark:text-purple-300 mt-1 truncate" id="stat-revenue-today">-</div>
         </div>
       </section>
 
-      <!-- Welcome Banner -->
+      <!-- Charts Row: Category Donut & Expiry Overview -->
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Stock by Category (Inline SVG Donut) -->
+        <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white" data-i18n="stockByCategory">Stock by Category</h2>
+            <span class="text-[11px] text-slate-400">Distribution</span>
+          </div>
+          <div id="category-donut-container" class="min-h-[180px] flex items-center justify-center">
+            <div class="text-xs text-slate-400">Loading chart...</div>
+          </div>
+        </div>
+
+        <!-- Expiry Overview (Inline SVG Bars) -->
+        <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white" data-i18n="expiryOverview">Expiry Overview</h2>
+            <span class="text-[11px] text-slate-400">Batches Status</span>
+          </div>
+          <div id="expiry-bars-container" class="min-h-[180px] flex flex-col justify-center">
+            <div class="text-xs text-slate-400">Loading overview...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recently Added Batches Table -->
       <section class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft">
-        <h2 class="text-base font-bold text-slate-900 dark:text-white mb-2">Pharmacy Inventory & Orders</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">
-          Track FEFO batch allocations, review incoming prescriptions, process orders, and manage racks/shelves.
-        </p>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white" data-i18n="recentMeds">Recently Added Batches</h2>
+          <a href="/admin/medicines.html" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+            View All Medicines &rarr;
+          </a>
+        </div>
+        <div class="overflow-x-auto" id="recently-added-container">
+          <div class="text-xs text-slate-400 py-6 text-center">Loading recent inventory...</div>
+        </div>
       </section>
     </main>
   </div>
 
   <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/admin/dashboard.js"></script>
 </body>
 </html>
-

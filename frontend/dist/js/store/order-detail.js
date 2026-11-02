@@ -7,8 +7,6 @@ import { auth } from '../core/auth.js';
 let currentOrder = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await auth.init();
-
   const params = new URLSearchParams(window.location.search);
   const orderId = params.get('id');
 
@@ -96,21 +94,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const stepCol = el('div', { className: 'flex sm:flex-col items-center sm:items-center text-left sm:text-center gap-3 sm:gap-2' }, [
           el('div', {
-            className: `w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition ${
-              isDone
-                ? 'bg-primary-600 text-white shadow-soft'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-            }`,
+            className: `w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition ${isDone
+              ? 'bg-primary-600 text-white shadow-soft'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+              }`,
           }, [isDone ? '✓' : String(idx + 1)]),
           el('div', {}, [
             el('p', {
-              className: `text-xs font-bold ${
-                isCurrent
-                  ? 'text-primary-600 dark:text-primary-400'
-                  : isDone
+              className: `text-xs font-bold ${isCurrent
+                ? 'text-primary-600 dark:text-primary-400'
+                : isDone
                   ? 'text-slate-900 dark:text-white'
                   : 'text-slate-400'
-              }`,
+                }`,
             }, [step.label]),
             el('p', { className: 'text-[10px] text-slate-400 hidden sm:block mt-0.5' }, [step.desc]),
           ]),
@@ -272,25 +268,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Cancel Order Button (Only visible if pending or confirmed)
         ['pending', 'confirmed'].includes(order.status)
           ? el(
-              'button',
-              {
-                type: 'button',
-                className: 'w-full py-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs font-semibold transition',
-                onClick: async () => {
-                  if (!confirm('Are you sure you want to cancel this order? Reserved items will be released back to pharmacy inventory.')) {
-                    return;
-                  }
-                  try {
-                    await api.post(`/orders/${order.id}/cancel`, {});
-                    toast.info('Order has been cancelled');
-                    await loadOrder();
-                  } catch (e) {
-                    toast.error(e.message || 'Unable to cancel order');
-                  }
-                },
+            'button',
+            {
+              type: 'button',
+              className: 'w-full py-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs font-semibold transition',
+              onClick: async () => {
+                if (!confirm('Are you sure you want to cancel this order? Reserved items will be released back to pharmacy inventory.')) {
+                  return;
+                }
+                try {
+                  await api.post(`/orders/${order.id}/cancel`, {});
+                  toast.info('Order has been cancelled');
+                  await loadOrder();
+                } catch (e) {
+                  toast.error(e.message || 'Unable to cancel order');
+                }
               },
-              ['Cancel Order']
-            )
+            },
+            ['Cancel Order']
+          )
           : null,
       ]),
     ]);

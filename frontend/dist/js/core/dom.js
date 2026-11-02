@@ -88,11 +88,12 @@ export function append(parent, ...children) {
 }
 
 /**
- * Set safe textContent on an element.
- * @param {HTMLElement} element
+ * Set safe textContent on an element or selector.
+ * @param {HTMLElement|string} target
  * @param {string} value
  */
-export function setText(element, value) {
+export function setText(target, value) {
+  const element = typeof target === 'string' ? document.querySelector(target) : target;
   if (element) {
     element.textContent = value !== null && value !== undefined ? String(value) : '';
   }

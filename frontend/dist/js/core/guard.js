@@ -42,8 +42,12 @@ export const guard = {
     if (allowedRolesAttr) {
       const allowedRoles = allowedRolesAttr.split(',').map((r) => r.trim());
       if (!allowedRoles.includes(user?.role)) {
-        // Forbidden: redirect customer to store or show error
-        window.location.href = '/index.html';
+        // Forbidden: redirect pharmacist/staff to admin home, customer to store
+        if (['admin', 'pharmacist', 'staff'].includes(user?.role)) {
+          window.location.href = '/admin/index.html';
+        } else {
+          window.location.href = '/index.html';
+        }
       }
     }
   },

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- @include partials/head.html -->
+</head>
+<body data-guard="auth" data-roles="admin,pharmacist,staff" class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex font-sans transition-colors duration-200">
+  <!-- @include partials/admin-sidebar.html -->
+
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- @include partials/admin-topbar.html -->
+
+    <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+      <!-- Page Header & Action Toolbar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white" data-i18n="medicines">Medicines Inventory</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Manage pharmaceuticals, batch allocations, pricing, and stock thresholds.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- View Toggle -->
+          <div class="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+            <button id="view-table-btn" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm transition" title="Table View">
+              <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+              <span class="ml-1 hidden sm:inline" data-i18n="table">Table</span>
+            </button>
+            <button id="view-cards-btn" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition" title="Cards View">
+              <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+              <span class="ml-1 hidden sm:inline" data-i18n="cards">Cards</span>
+            </button>
+          </div>
+
+          <!-- Print View -->
+          <button id="btn-print" class="px-3 py-2 text-xs font-semibold rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition flex items-center gap-1.5" title="Print Inventory">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span class="hidden sm:inline">Print</span>
+          </button>
+
+          <!-- CSV Export -->
+          <button id="btn-export-csv" class="px-3 py-2 text-xs font-semibold rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span data-i18n="exportCsv">Export CSV</span>
+          </button>
+
+          <!-- CSV Import -->
+          <button id="btn-open-import" class="px-3 py-2 text-xs font-semibold rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            <span data-i18n="importCsv">Import CSV</span>
+          </button>
+
+          <!-- Add Medicine -->
+          <button id="btn-add-medicine" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-primary-600 hover:bg-primary-700 text-white shadow-lift transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span data-i18n="addMedicine">Add Medicine</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Search Bar -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="relative w-full md:w-80">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input
+            type="search"
+            id="filter-search"
+            placeholder="Search by name, generic, salt, company..."
+            class="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+          />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <!-- Category Filter -->
+          <select id="filter-category" class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
+            <option value="">All Categories</option>
+          </select>
+
+          <!-- Rx Filter -->
+          <select id="filter-rx" class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
+            <option value="">All Rx Types</option>
+            <option value="1">Rx Required</option>
+            <option value="0">OTC (No Rx)</option>
+          </select>
+
+          <!-- Sort Select -->
+          <select id="filter-sort" class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
+            <option value="name_asc">Name (A-Z)</option>
+            <option value="name_desc">Name (Z-A)</option>
+            <option value="stock_asc">Stock (Low to High)</option>
+            <option value="stock_desc">Stock (High to Low)</option>
+            <option value="recent">Recently Added</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Main Medicines Container (Table & Cards) -->
+      <section class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-soft overflow-hidden">
+        <!-- Table View -->
+        <div id="medicines-table-view" class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 dark:bg-slate-800/50 text-[11px] font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+              <tr>
+                <th class="py-3 px-4 font-semibold">Medicine / Generic</th>
+                <th class="py-3 px-4 font-semibold">Category</th>
+                <th class="py-3 px-4 font-semibold">Dosage / Form</th>
+                <th class="py-3 px-4 font-semibold text-center">Rx</th>
+                <th class="py-3 px-4 font-semibold text-right">Available Units</th>
+                <th class="py-3 px-4 font-semibold text-right">Price Range</th>
+                <th class="py-3 px-4 font-semibold text-center">Batches</th>
+                <th class="py-3 px-4 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="medicines-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/60">
+              <tr>
+                <td colspan="8" class="p-8 text-center text-slate-400">Loading medicines...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Cards View -->
+        <div id="medicines-cards-view" class="hidden p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+        <!-- Pagination Bar -->
+        <div class="px-6 py-4 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div class="text-slate-500 dark:text-slate-400" id="pagination-info">
+            Showing <span id="pag-from">0</span> to <span id="pag-to">0</span> of <span id="pag-total">0</span> medicines
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btn-pag-prev" disabled class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 transition">
+              Previous
+            </button>
+            <span class="px-2 font-medium" id="pag-current">1</span>
+            <button id="btn-pag-next" disabled class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 transition">
+              Next
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Add / Edit Medicine Modal -->
+  <div id="medicine-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl animate-[slideIn_0.2s_ease]">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-med-title">Add New Medicine</h3>
+        <button id="btn-close-med-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="form-medicine" class="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+        <input type="hidden" id="med-id" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Name -->
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Brand Name *</label>
+            <input type="text" id="med-name" required placeholder="e.g. Paracip 500 Tablet" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <span class="text-[10px] text-red-500 hidden" id="err-med-name"></span>
+          </div>
+
+          <!-- Generic Name -->
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Generic / Composition *</label>
+            <input type="text" id="med-generic" required placeholder="e.g. Paracetamol 500mg" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <span class="text-[10px] text-red-500 hidden" id="err-med-generic"></span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Category -->
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Category *</label>
+            <select id="med-category" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Manufacturer -->
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Manufacturer *</label>
+            <input type="text" id="med-mfg" required placeholder="e.g. Cipla Ltd" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            <span class="text-[10px] text-red-500 hidden" id="err-med-mfg"></span>
+          </div>
+
+          <!-- Dosage Form -->
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Dosage Form</label>
+            <input type="text" id="med-form" placeholder="e.g. Tablet, Syrup" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <!-- Strength -->
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Strength</label>
+            <input type="text" id="med-strength" placeholder="e.g. 500mg" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+
+          <!-- Min Stock Alert -->
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Min Stock Alert</label>
+            <input type="number" id="med-min-stock" min="0" value="10" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+
+          <!-- GST Rate -->
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">GST Rate (%)</label>
+            <input type="number" id="med-gst" min="0" max="28" step="0.5" value="12" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+
+          <!-- HSN Code -->
+          <div>
+            <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">HSN Code</label>
+            <input type="text" id="med-hsn" placeholder="e.g. 3004" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+        </div>
+
+        <!-- Requires Rx Toggle -->
+        <div class="flex items-center gap-2 pt-2">
+          <input type="checkbox" id="med-rx" class="w-4 h-4 rounded text-primary-600 focus:ring-primary-500" />
+          <label for="med-rx" class="font-medium text-slate-700 dark:text-slate-300">Requires Doctor's Prescription (Schedule H/H1)</label>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Description & Storage Instructions</label>
+          <textarea id="med-desc" rows="2" placeholder="e.g. Store below 25°C in a dry place" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+          <button type="button" id="btn-cancel-med" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            Cancel
+          </button>
+          <button type="submit" id="btn-save-med" class="px-5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-lift transition">
+            Save Medicine
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div id="delete-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+      <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 mx-auto flex items-center justify-center">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </div>
+      <div>
+        <h4 class="text-base font-bold text-slate-900 dark:text-white">Delete Medicine?</h4>
+        <p class="text-xs text-slate-500 mt-1" id="delete-med-name">This medicine and its inactive batches will be soft-deleted.</p>
+      </div>
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <button id="btn-cancel-delete" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          Cancel
+        </button>
+        <button id="btn-confirm-delete" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-sm transition">
+          Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Batch Drawer (Slide-in) -->
+  <div id="batch-drawer" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex justify-end">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-xl h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800 animate-[slideIn_0.2s_ease]">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white" id="drawer-med-name">Batches Management</h3>
+          <p class="text-xs text-slate-400">FEFO stock allocations, pricing, and expiry</p>
+        </div>
+        <button id="btn-close-batch-drawer" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Add Batch Form (Collapsible) -->
+      <div class="p-4 bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
+        <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Add New Batch
+        </h4>
+        <form id="form-add-batch" class="space-y-3 text-xs">
+          <input type="hidden" id="batch-med-id" />
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Batch Number *</label>
+              <input type="text" id="batch-number" required placeholder="e.g. BATCH-2026-X" class="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Quantity *</label>
+              <input type="number" id="batch-qty" required min="1" placeholder="100" class="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Mfg Date *</label>
+              <input type="date" id="batch-mfg-date" required class="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Expiry Date *</label>
+              <input type="date" id="batch-exp-date" required class="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Purchase (₹) *</label>
+              <input type="number" id="batch-purchase" required min="0" step="0.01" placeholder="40.00" class="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Selling (₹) *</label>
+              <input type="number" id="batch-selling" required min="0" step="0.01" placeholder="50.00" class="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" />
+            </div>
+            <div>
+              <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">MRP (₹) *</label>
+              <input type="number" id="batch-mrp" required min="0" step="0.01" placeholder="55.00" class="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Assign Rack</label>
+              <select id="batch-rack-id" class="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                <option value="">No Rack</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Assign Shelf</label>
+              <select id="batch-shelf-id" class="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                <option value="">No Shelf</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-1">
+            <button type="submit" id="btn-save-batch" class="px-4 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs shadow-sm transition">
+              Add Batch
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Batches List -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-3" id="batch-list-container">
+        <div class="text-center py-6 text-slate-400 text-xs">Loading batches...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSV Import 2-Step Modal -->
+  <div id="import-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white" id="import-modal-title">Import Medicines CSV</h3>
+        <button id="btn-close-import-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-6 flex-1 overflow-y-auto space-y-4 text-xs">
+        <!-- Step 1: Upload File -->
+        <div id="import-step-upload" class="space-y-4">
+          <div class="p-8 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl text-center space-y-3">
+            <svg class="w-10 h-10 text-slate-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <div>
+              <p class="font-semibold text-slate-800 dark:text-slate-200">Select a CSV inventory file</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">Headers required: name, generic_name, manufacturer, category, batch_number, mfg_date, exp_date, mrp, purchase_price, selling_price, quantity</p>
+            </div>
+            <input type="file" id="csv-file-input" accept=".csv" class="hidden" />
+            <button type="button" id="btn-select-csv" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-200 transition">
+              Browse CSV File
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Preview Validation Report -->
+        <div id="import-step-preview" class="hidden space-y-4">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            <div>
+              <span class="font-semibold text-slate-800 dark:text-slate-200" id="preview-row-count">0 Rows Analyzed</span>
+              <span class="text-emerald-600 dark:text-emerald-400 ml-2 font-medium" id="preview-valid-count">0 Valid</span>
+              <span class="text-red-500 ml-2 font-medium" id="preview-error-count">0 Errors</span>
+            </div>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="import-update-existing" class="w-3.5 h-3.5 rounded text-primary-600" />
+              <span class="text-slate-600 dark:text-slate-300">Update existing batches</span>
+            </label>
+          </div>
+
+          <div class="overflow-x-auto max-h-72 border border-slate-100 dark:border-slate-800 rounded-xl">
+            <table class="w-full text-left text-xs" id="import-preview-table">
+              <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold sticky top-0">
+                <tr>
+                  <th class="p-2">Row</th>
+                  <th class="p-2">Medicine</th>
+                  <th class="p-2">Batch</th>
+                  <th class="p-2">Expiry</th>
+                  <th class="p-2 text-right">Units</th>
+                  <th class="p-2">Status</th>
+                </tr>
+              </thead>
+              <tbody id="import-preview-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+        <button id="btn-cancel-import" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          Cancel
+        </button>
+        <button id="btn-commit-import" disabled class="px-5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold shadow-sm disabled:opacity-40 transition">
+          Commit Import
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/admin/medicines.js"></script>
+</body>
+</html>
+

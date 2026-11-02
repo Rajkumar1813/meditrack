@@ -101,5 +101,8 @@
   "applyFilters": "फ़िल्टर लागू करें",
   "priceLowToHigh": "मूल्य: कम से ज्यादा",
   "priceHighToLow": "मूल्य: ज्यादा से कम",
-  "nameAsc": "नाम: A से Z"
+  "nameAsc": "नाम: A से Z",
+  "prescriptions": "नुस्खे (Rx)",
+  "customers": "ग्राहक",
+  "invoices": "चालान (Invoices)"
 }
