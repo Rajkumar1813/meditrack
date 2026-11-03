@@ -46,6 +46,7 @@ use MediTrack\Middleware\Idempotency;
 /** @var Router $router */
 
 $router->get('/health', [HealthController::class, 'check'], [ForceJson::class, Cors::class]);
+$router->get('/status', [HealthController::class, 'check'], [ForceJson::class, Cors::class]);
 
 $router->group([
     'prefix' => '/api/v1',
@@ -57,6 +58,10 @@ $router->group([
         SetLocale::class,
     ],
 ], function (Router $r) {
+    // Health & Status
+    $r->get('/health', [HealthController::class, 'check']);
+    $r->get('/status', [HealthController::class, 'check']);
+
     // Brand
     $r->get('/brand', [BrandController::class, 'show']);
 

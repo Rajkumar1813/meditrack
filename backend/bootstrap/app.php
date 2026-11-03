@@ -150,7 +150,8 @@ $container->singleton(RedisClient::class, function () use ($basePath) {
             'port' => $redisConfig['port'] ?? 6379,
             'password' => $redisConfig['password'] ?? null,
             'database' => $redisConfig['database'] ?? 0,
-            'timeout' => $redisConfig['timeout'] ?? 1.5,
+            'timeout' => $redisConfig['timeout'] ?? 0.5,
+            'read_write_timeout' => $redisConfig['read_write_timeout'] ?? 0.5,
         ]);
     } catch (\Throwable) {
         return null;

@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = 5173;
-const BACKEND_TARGET = 'http://127.0.0.1:8080';
+const BACKEND_TARGET = process.env.BACKEND_TARGET || 'http://localhost:8080';
 const DIST_DIR = path.join(__dirname, 'dist');
 
 console.log('Running build before launching dev server...');
@@ -29,30 +29,38 @@ const MIME_TYPES = {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
-  // Proxy /api/ and /health to backend
-  if (url.pathname.startsWith('/api/') || url.pathname === '/health') {
-    const targetUrl = new URL(url.pathname + url.search, BACKEND_TARGET);
-    const proxyReq = http.request(
-      targetUrl,
-      {
-        method: req.method,
-        headers: {
-          ...req.headers,
-          host: targetUrl.host,
+  // Proxy /api/, /health, and /status to backend
+  if (url.pathname.startsWith('/api/') || url.pathname === '/health' || url.pathname === '/status') {
+    const forwardRequest = (targetHost) => {
+      const targetUrl = new URL(url.pathname + url.search, targetHost);
+      const proxyReq = http.request(
+        targetUrl,
+        {
+          method: req.method,
+          headers: {
+            ...req.headers,
+            host: targetUrl.host,
+          },
         },
-      },
-      (proxyRes) => {
-        res.writeHead(proxyRes.statusCode, proxyRes.headers);
-        proxyRes.pipe(res);
-      }
-    );
+        (proxyRes) => {
+          res.writeHead(proxyRes.statusCode, proxyRes.headers);
+          proxyRes.pipe(res);
+        }
+      );
 
-    proxyReq.on('error', (err) => {
-      res.writeHead(502, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: false, error: { code: 'BAD_GATEWAY', message: err.message } }));
-    });
+      proxyReq.on('error', (err) => {
+        if (targetHost.includes('localhost') && err.code === 'ECONNREFUSED') {
+          forwardRequest('http://127.0.0.1:8080');
+          return;
+        }
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: { code: 'BAD_GATEWAY', message: err.message } }));
+      });
 
-    req.pipe(proxyReq);
+      req.pipe(proxyReq);
+    };
+
+    forwardRequest(BACKEND_TARGET);
     return;
   }
 

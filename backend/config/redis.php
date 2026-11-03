@@ -10,6 +10,7 @@ return [
     'password' => !empty($_ENV['REDIS_PASSWORD']) && $_ENV['REDIS_PASSWORD'] !== 'null' ? $_ENV['REDIS_PASSWORD'] : null,
     'database' => (int)($_ENV['REDIS_DB'] ?? 0),
     'prefix' => $_ENV['REDIS_PREFIX'] ?? 'meditrack:',
-    'timeout' => 1.5,
+    'timeout' => (float)($_ENV['REDIS_TIMEOUT'] ?? 0.5),
+    'read_write_timeout' => (float)($_ENV['REDIS_TIMEOUT'] ?? 0.5),
 ];
 
