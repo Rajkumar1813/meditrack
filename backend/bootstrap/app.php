@@ -26,14 +26,43 @@ if (file_exists($basePath . '/.env')) {
     $dotenv->safeLoad();
 }
 
-// 2. Set Up Structured Logging (Monolog)
+// Security: Enforce display_errors = Off in production / non-debug environments
+$isDebug = filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN);
+if (!$isDebug) {
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
+}
+
+// Initialize Sentry error reporting if DSN is provided
+if (!empty($_ENV['SENTRY_DSN']) && function_exists('\Sentry\init')) {
+    \Sentry\init([
+        'dsn' => $_ENV['SENTRY_DSN'],
+        'environment' => $_ENV['APP_ENV'] ?? 'production',
+        'release' => 'meditrack@1.0.0',
+        'traces_sample_rate' => (float)($_ENV['SENTRY_TRACES_SAMPLE_RATE'] ?? 0.2),
+    ]);
+}
+
+// 2. Set Up Structured Logging (Monolog with JSON formatting & Trace Request ID)
 $logPath = $basePath . '/storage/logs';
 if (!is_dir($logPath)) {
     mkdir($logPath, 0755, true);
 }
 
 $logger = new Logger('meditrack');
-$logger->pushHandler(new StreamHandler($logPath . '/app.log', Logger::DEBUG));
+$streamHandler = new StreamHandler($logPath . '/app.log', Logger::DEBUG);
+$streamHandler->setFormatter(new \Monolog\Formatter\JsonFormatter());
+$logger->pushHandler($streamHandler);
+
+$currentRequestId = $_SERVER['HTTP_X_REQUEST_ID'] ?? bin2hex(random_bytes(8));
+$logger->pushProcessor(function ($record) use ($currentRequestId) {
+    if (is_array($record)) {
+        $record['extra']['request_id'] = $currentRequestId;
+    } elseif ($record instanceof \Monolog\LogRecord) {
+        $record->extra['request_id'] = $currentRequestId;
+    }
+    return $record;
+});
 
 // 3. Global Uncaught Exception & Error Handler (Returns Clean JSON)
 $isTesting = defined('PHPUNIT_RUNNING')
@@ -51,6 +80,10 @@ if (!$isTesting) {
     });
 
     set_exception_handler(function (\Throwable $e) use ($logger) {
+        if (function_exists('\Sentry\captureException') && !empty($_ENV['SENTRY_DSN'])) {
+            \Sentry\captureException($e);
+        }
+
         $requestId = bin2hex(random_bytes(8));
         $isDebug = filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN);
 

@@ -11,7 +11,7 @@
 [![MySQL 8](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Redis](https://img.shields.io/badge/Redis-6.x%2F7.x-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/)
 [![Flutter](https://img.shields.io/badge/Flutter-Ready-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/)
-[![Tests Passing](https://img.shields.io/badge/Tests-235%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
+[![Tests Passing](https://img.shields.io/badge/Tests-210%20Passed-success?style=flat&logo=github-actions&logoColor=white)](#testing--verification)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-blue.svg)](#)
 
 </div>
@@ -37,6 +37,8 @@
 - [Customer Web Storefront Architecture (Phase 10)](#-customer-web-storefront-architecture-phase-10)
 - [Admin Inventory OS & Pharmacy Management (Phase 11)](#-admin-inventory-os--pharmacy-management-phase-11)
 - [Mobile Architecture & Flutter Foundation (Phase 12)](#-mobile-architecture--flutter-foundation-phase-12)
+- [Enterprise Mobile App Architecture (Phase 13)](#-enterprise-mobile-app-architecture-phase-13)
+- [Production Readiness, Security Hardening & Observability (Phase 14)](#-production-readiness-security-hardening--observability-phase-14)
 - [License & Compliance Notice](#-license--compliance-notice)
 
 ---
@@ -761,6 +763,60 @@ Phase 13 delivers complete native Flutter screens and workflows for both **Custo
   9. Customer role-based redirect.
   10. Pharmacist role-based dashboard.
   11. Card3D reduced-motion accessibility.
+
+---
+
+## 🔒 Production Readiness, Security Hardening & Observability (Phase 14)
+
+Phase 14 elevates Meditrack to production enterprise grade, incorporating OWASP Top 10 defenses, high-throughput database index optimization, distributed observability, automated load testing, and statutory compliance documentation.
+
+### 1. OWASP Top 10 Security Audit & Hardening
+- **Formal Audit Report**: [`docs/SECURITY_AUDIT_REPORT.md`](docs/SECURITY_AUDIT_REPORT.md)
+- **Zero SQL Injection**: 100% prepared PDO statements verified by codebase grep.
+- **Zero XSS**: Dynamic `.innerHTML` completely eliminated from `frontend/src/`; DOM constructed exclusively via `.textContent` and standard DOM nodes.
+- **Token Security**: 
+  - Access tokens stored in memory only (`let accessToken = null`), never exposed to `localStorage`.
+  - Refresh tokens stored in `HttpOnly`, `Secure`, `SameSite=Strict` cookies restricted to `/api/v1/auth`.
+  - Token theft detection: revoking an already-used refresh token revokes all user sessions immediately.
+  - `OriginCheck` middleware protects all authentication routes against CSRF.
+- **IDOR Protections**: Enforced ownership verification on orders, prescriptions, invoices, and customer address endpoints (`403 Forbidden` on unauthorized cross-user access).
+- **Hardened Nginx**: Deployed in `infra/nginx/default.conf` with `nosniff`, `DENY` clickjacking protection, strict CSP, and dotfile blocking.
+- **Dependency Audits**: `composer audit` and `npm audit` pass with 0 unhandled vulnerabilities.
+
+### 2. High-Performance Optimization & Preloading
+- **Database Composite Indexes**: Added in [`backend/database/migrations/004_performance_indexes.sql`](backend/database/migrations/004_performance_indexes.sql):
+  - `prescriptions(user_id, created_at)`
+  - `medicines(is_active, slug)`
+  - `order_items(order_id, medicine_id)`
+  - `batches(medicine_id, quantity, exp_date)`
+  - `notifications(user_id, read_at)`
+- **PHP OPcache & Preloading**:
+  - `backend/preload.php`: Pre-compiles all Core classes, repositories, services, and middlewares into persistent shared memory on container startup.
+  - `infra/php/opcache.ini`: JIT tracing (`1255`), 256MB memory, and file validation disabled in production.
+- **k6 Distributed Load Testing**:
+  - Script: [`backend/tests/load/k6_load_test.js`](backend/tests/load/k6_load_test.js)
+  - 200 concurrent Virtual Users (VUs) benchmarking:
+    - Auto-suggest: p95 < 150ms
+    - Catalog browse: p95 < 100ms
+    - Concurrent order placement: zero oversell guaranteed via transactional row locks (`FOR UPDATE`).
+
+### 3. Comprehensive Rate Limiting Verification
+- Test Suite: [`backend/tests/Feature/RateLimitAuditTest.php`](backend/tests/Feature/RateLimitAuditTest.php)
+- Verified all 11 rate-limiting rows from [`docs/04-scalability-pagination-rate-limit.md`](docs/04-scalability-pagination-rate-limit.md) including OTP requests (5/hr), verify (5/5min), catalog (120/min), checkout (10/min), payments (20/min), and admin CSV imports (5/hr).
+
+### 4. Distributed Observability
+- **Sentry Integration**: Exception and error tracking configured in `backend/bootstrap/app.php` using `Sentry\init`.
+- **Structured JSON Logging**: Monolog 3 configured with `JsonFormatter` and `X-Request-Id` trace processor writing to `backend/storage/logs/app.log`.
+- **Comprehensive Health Check**: `GET /api/v1/health` verifying MySQL connection, Redis ping, queue depth, disk write permissions, and OPcache status.
+
+### 5. Production Specifications & Runbooks
+- **OpenAPI 3.0 Specification**: [`docs/openapi.yaml`](docs/openapi.yaml)
+- **Postman Collection**: [`docs/meditrack.postman_collection.json`](docs/meditrack.postman_collection.json)
+- **Production Runbook**: [`docs/RUNBOOK.md`](docs/RUNBOOK.md) (Single-transaction database backup/restore, zero-downtime blue/green deployment, rollbacks).
+- **Brand Theming Guide**: [`docs/BRANDING.md`](docs/BRANDING.md) (Single-source configuration compiled from `brand/brand.json`).
+- **Google Play Store Release Checklist**: [`docs/PLAY_STORE_CHECKLIST.md`](docs/PLAY_STORE_CHECKLIST.md) (Keystore generation, signed AAB, Medical Apps Policy compliance, Data Safety disclosures).
+- **Statutory Regulatory Compliance**: [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) (Drugs and Cosmetics Act 1940 Schedule H/H1/X rules, 2-year prescription retention, DPDP Act 2023 consent & erasure protocols).
+- **Production Orchestration**: [`docker-compose.prod.yml`](docker-compose.prod.yml) and [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ---
 

@@ -1,0 +1,549 @@
+openapi: 3.0.3
+info:
+  title: MediTrack Online Pharmacy & Inventory OS API
+  description: |
+    Production REST API specification for MediTrack.
+    Includes customer storefront ordering, prescription verification, FEFO batch fulfillment,
+    gap-free GST invoicing, Razorpay payments, and pharmacy inventory administration.
+  version: 1.0.0
+  contact:
+    name: MediTrack Engineering Team
+    email: support@meditrack.example.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Docker / Nginx Development
+  - url: https://api.meditrack.example.com/api/v1
+    description: Production Environment
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns health status of MySQL database, Redis, local disk storage, and queue depth.
+      responses:
+        '200':
+          description: System is healthy.
+        '503':
+          description: Service degraded or dependency offline.
+
+  /brand:
+    get:
+      summary: Fetch current pharmacy brand identity & theme tokens
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+          description: ETag of cached brand configuration
+      responses:
+        '200':
+          description: Brand identity payload
+        '304':
+          description: Not Modified (cached brand identity is up-to-date)
+
+  /auth/otp/request:
+    post:
+      summary: Request 6-digit OTP for phone or email login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier]
+              properties:
+                identifier:
+                  type: string
+                  example: "+919876543210"
+      responses:
+        '200':
+          description: OTP dispatched successfully
+        '429':
+          description: Rate limit exceeded (1/min or 5/hour)
+
+  /auth/otp/verify:
+    post:
+      summary: Verify 6-digit OTP and issue JWT access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier, otp]
+              properties:
+                identifier:
+                  type: string
+                  example: "+919876543210"
+                otp:
+                  type: string
+                  example: "511241"
+                client:
+                  type: string
+                  enum: [web, mobile]
+                  default: web
+      responses:
+        '200':
+          description: Verification successful, tokens returned
+        '401':
+          description: Invalid or expired OTP
+
+  /auth/refresh:
+    post:
+      summary: Rotate refresh token and issue new 15-minute access token
+      parameters:
+        - name: client
+          in: query
+          schema:
+            type: string
+            enum: [web, mobile]
+      responses:
+        '200':
+          description: Tokens refreshed
+        '401':
+          description: Invalid or revoked refresh token (triggers token reuse revocation)
+
+  /auth/logout:
+    post:
+      summary: Invalidate active refresh token and end session
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Session terminated
+
+  /auth/me:
+    get:
+      summary: Get currently authenticated user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile details
+
+  /categories:
+    get:
+      summary: List all active medicine dosage form categories
+      responses:
+        '200':
+          description: List of categories
+
+  /medicines:
+    get:
+      summary: Browse and filter active medicine catalog
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: rx_required
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+        - name: in_stock
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated medicines list
+
+  /medicines/{id}:
+    get:
+      summary: Get medicine details by ID or slug
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Medicine details with active FEFO batch pricing and stock
+
+  /medicines/{id}/alternatives:
+    get:
+      summary: Fetch same-salt generic alternative medicines
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of therapeutic substitute medicines sharing matching active salts
+
+  /search/suggest:
+    get:
+      summary: Debounced type-ahead auto-suggestions
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grouped suggestions (brand names and salt molecules)
+
+  /cart:
+    get:
+      summary: Get current customer cart
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Cart items with pricing and Rx warning status
+    post:
+      summary: Add item to cart
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [medicine_id, quantity]
+              properties:
+                medicine_id:
+                  type: integer
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Cart updated
+
+  /orders:
+    get:
+      summary: List authenticated customer orders
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Customer order history
+    post:
+      summary: Place order with FEFO batch allocation & Idempotency
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address_id, payment_method]
+              properties:
+                address_id:
+                  type: integer
+                payment_method:
+                  type: string
+                  enum: [cod, upi, card, netbanking]
+                prescription_id:
+                  type: integer
+      responses:
+        '201':
+          description: Order created successfully
+        '400':
+          description: Insufficient stock or missing prescription
+
+  /orders/{id}:
+    get:
+      summary: Get order details and timeline
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order details with timeline and tracking info
+        '403':
+          description: Forbidden (IDOR protection)
+
+  /orders/{id}/invoice:
+    get:
+      summary: Download Dompdf GST Tax Invoice
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Binary PDF stream (application/pdf)
+        '403':
+          description: Forbidden (owner access only)
+
+  /prescriptions:
+    get:
+      summary: List uploaded prescriptions
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Prescription history with signed download URLs
+    post:
+      summary: Upload new prescription images / PDF (max 5MB, finfo MIME sniffed)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                order_id:
+                  type: integer
+      responses:
+        '201':
+          description: Prescription uploaded and queued for pharmacist review
+
+  /prescriptions/{id}/files/{file_id}:
+    get:
+      summary: Securely download prescription document via HMAC signed URL
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: expires
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: signature
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File content stream
+        '403':
+          description: Expired or tampered signed URL
+
+  /payments/create:
+    post:
+      summary: Initialize Razorpay order for online payment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id]
+              properties:
+                order_id:
+                  type: integer
+      responses:
+        '200':
+          description: Razorpay order details and public key
+
+  /payments/verify:
+    post:
+      summary: Verify Razorpay payment signature
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, razorpay_order_id, razorpay_payment_id, razorpay_signature]
+              properties:
+                order_id:
+                  type: integer
+                razorpay_order_id:
+                  type: string
+                razorpay_payment_id:
+                  type: string
+                razorpay_signature:
+                  type: string
+      responses:
+        '200':
+          description: Payment verified, order confirmed
+
+  /webhooks/razorpay:
+    post:
+      summary: Razorpay webhook processor (HMAC signature validated, idempotent)
+      parameters:
+        - name: X-Razorpay-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Webhook event processed or skipped if duplicate
+
+  /devices:
+    post:
+      summary: Register FCM device token for push notifications
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fcm_token, platform]
+              properties:
+                fcm_token:
+                  type: string
+                platform:
+                  type: string
+                  enum: [android, ios, web]
+      responses:
+        '200':
+          description: Device token registered
+
+  /admin/dashboard/stats:
+    get:
+      summary: Pharmacy dashboard statistics, revenue, and inventory health
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: KPI statistics, category distribution, and expiry status
+
+  /admin/medicines:
+    get:
+      summary: Search and paginate medicines for inventory management
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Medicines with stock and batch counts
+    post:
+      summary: Create new medicine and initial batch
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, category, price, mrp, batch_number, quantity, mfg_date, expiry_date]
+      responses:
+        '201':
+          description: Medicine created
+
+  /admin/orders/{id}/status:
+    patch:
+      summary: Transition order lifecycle state (Confirmed, Packed, Shipped, Delivered)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [confirmed, packed, shipped, delivered, cancelled]
+                courier:
+                  type: string
+                tracking_no:
+                  type: string
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Order status updated
+
+  /admin/prescriptions/{id}/review:
+    patch:
+      summary: Pharmacist prescription review (Approve with stamp or Reject with reason)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [approved, rejected]
+                rejection_reason:
+                  type: string
+                valid_until:
+                  type: string
+                  format: date
+      responses:
+        '200':
+          description: Prescription decision recorded
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+

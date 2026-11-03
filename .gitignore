@@ -1,7 +1,7 @@
 # User local documentation & blueprints
-/docs
 /reference
 /rules
+docs/06-antigravity-prompts.md
 
 # Dependencies
 /backend/vendor/
