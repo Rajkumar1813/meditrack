@@ -90,6 +90,82 @@ class AuthController
     }
 
     /**
+     * POST /api/v1/auth/authgear/exchange
+     * Backend authorization code exchange (for confidential clients with client_secret)
+     */
+    public function exchangeAuthgear(Request $request): Response
+    {
+        if ($this->authgearService === null) {
+            throw new \RuntimeException('Authgear service not configured.');
+        }
+
+        $input = $request->getBody();
+        $code = $input['code'] ?? null;
+        if (!$code) {
+            throw new ValidationException(['code' => ['Authorization code is required.']]);
+        }
+
+        $redirectUri = $input['redirect_uri'] ?? null;
+        $codeVerifier = $input['code_verifier'] ?? null;
+
+        $tokenResponse = $this->authgearService->exchangeCode((string)$code, $redirectUri, $codeVerifier);
+        $accessToken = $tokenResponse['access_token'];
+
+        $claims = $this->authgearService->verifyToken($accessToken);
+        $user = $this->authgearService->syncUserFromClaims($claims, $accessToken);
+
+        if ((int)$user['is_blocked'] === 1) {
+            throw new \MediTrack\Core\Exceptions\ForbiddenException(
+                'Your account has been blocked. Please contact support.',
+                'ACCOUNT_BLOCKED'
+            );
+        }
+
+        return ApiResponse::success([
+            'user' => $this->authService->sanitizeUser($user),
+            'tokens' => [
+                'access_token' => $accessToken,
+                'token_type' => 'Bearer',
+                'expires_in' => $tokenResponse['expires_in'] ?? 900,
+            ],
+            'authgear_user_id' => $user['authgear_user_id'] ?? $claims['sub'],
+        ], 200, [], 'Authentication successful.');
+    }
+
+    /**
+     * POST /api/v1/auth/dev-login
+     * Instant 1-click test sign-in for development/testing (bypasses OTP cooldowns)
+     */
+    public function devLogin(Request $request): Response
+    {
+        $isDebug = filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $appEnv = $_ENV['APP_ENV'] ?? 'production';
+        if (!$isDebug && !in_array($appEnv, ['local', 'development', 'testing'], true)) {
+            throw new \MediTrack\Core\Exceptions\ForbiddenException('Developer login is disabled in production.');
+        }
+
+        $input = $request->getBody();
+        $role = ($input['role'] ?? 'admin') === 'customer' ? 'customer' : 'admin';
+
+        $phone = $role === 'admin' ? '+919999000001' : '+919876543210';
+        $user = $this->userRepo->findByPhone($phone);
+        if (!$user) {
+            $userId = $this->userRepo->create([
+                'name' => $role === 'admin' ? 'Demo Admin' : 'Demo Customer',
+                'phone' => $phone,
+                'email' => $role === 'admin' ? 'admin@meditrack.example' : 'customer@meditrack.example',
+                'role' => $role,
+                'locale' => 'en',
+                'is_blocked' => 0,
+            ]);
+            $user = $this->userRepo->findById($userId);
+        }
+
+        $tokenData = $this->authService->issueTokens($user, $request->ip(), 'dev-browser');
+        return $this->formatAuthResponse($tokenData, 'web', $request);
+    }
+
+    /**
      * POST /api/v1/auth/otp/request
      */
     public function requestOtp(Request $request): Response

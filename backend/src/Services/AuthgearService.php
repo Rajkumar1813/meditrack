@@ -14,6 +14,7 @@ class AuthgearService
 {
     private string $endpoint;
     private string $clientId;
+    private ?string $clientSecret;
     private string $redirectUri;
     private int $cacheTtl;
     private UserRepository $userRepo;
@@ -28,6 +29,10 @@ class AuthgearService
 
         $this->endpoint = rtrim($config['endpoint'] ?? ($_ENV['AUTHGEAR_ENDPOINT'] ?? ''), '/');
         $this->clientId = $config['client_id'] ?? ($_ENV['AUTHGEAR_CLIENT_ID'] ?? '');
+        $this->clientSecret = $config['client_secret'] ?? ($_ENV['AUTHGEAR_CLIENT_SECRET'] ?? null);
+        if ($this->clientSecret === '' || $this->clientSecret === 'null') {
+            $this->clientSecret = null;
+        }
         $this->redirectUri = $config['redirect_uri'] ?? ($_ENV['AUTHGEAR_REDIRECT_URI'] ?? '');
         $this->cacheTtl = (int)($config['jwks_cache_ttl'] ?? 86400);
 
@@ -261,6 +266,58 @@ class AuthgearService
 
         $this->userRepo->updateLastLogin($newUserId);
         return $this->userRepo->findById($newUserId);
+    }
+
+    /**
+     * Exchange authorization code for tokens directly on backend (supports confidential clients with client_secret)
+     */
+    public function exchangeCode(string $code, ?string $redirectUri = null, ?string $codeVerifier = null): array
+    {
+        $tokenUrl = $this->endpoint . '/oauth2/token';
+        $params = [
+            'grant_type' => 'authorization_code',
+            'client_id' => $this->clientId,
+            'code' => $code,
+            'redirect_uri' => $redirectUri ?: $this->redirectUri,
+        ];
+
+        if (!empty($this->clientSecret)) {
+            $params['client_secret'] = $this->clientSecret;
+        }
+
+        if (!empty($codeVerifier)) {
+            $params['code_verifier'] = $codeVerifier;
+        }
+
+        $ch = curl_init($tokenUrl);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'MediTrack-Backend-Authgear/1.0');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/x-www-form-urlencoded',
+            'Accept: application/json',
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $data = json_decode((string)$response, true);
+        if ($httpCode !== 200 || empty($data['access_token'])) {
+            $errorMsg = $data['error_description'] ?? ($data['error'] ?? 'Token exchange failed');
+            if (str_contains($errorMsg, 'client secret is required')) {
+                throw new UnauthorizedException(
+                    'Authgear client secret is required. In Authgear Portal, either change Application Type to "Single Page Application (SPA)" (no secret needed), OR add AUTHGEAR_CLIENT_SECRET in backend/.env',
+                    'CLIENT_SECRET_REQUIRED'
+                );
+            }
+            throw new UnauthorizedException("Authgear token exchange failed: {$errorMsg}", 'TOKEN_EXCHANGE_FAILED');
+        }
+
+        return $data;
     }
 }
 

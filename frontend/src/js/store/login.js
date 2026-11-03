@@ -97,18 +97,11 @@ export function initLoginPage() {
         const role = btn.dataset.devRole;
         try {
           btn.disabled = true;
-          const phone = role === 'admin' ? '+919999000001' : '+919876543210';
-          
-          // Request OTP via mock dev route
-          await api.post('/auth/otp/request', { identifier: phone, type: 'phone' });
-          const verifyResp = await api.post('/auth/otp/verify', {
-            identifier: phone,
-            code: '123456',
-            client: 'web',
-          });
+          // Instant developer 1-click login without OTP cooldown
+          const loginResp = await api.post('/auth/dev-login', { role });
 
-          const userData = verifyResp?.data?.user;
-          const token = verifyResp?.data?.tokens?.access_token || verifyResp?.data?.access_token;
+          const userData = loginResp?.data?.user;
+          const token = loginResp?.data?.tokens?.access_token || loginResp?.data?.access_token;
 
           if (userData && token) {
             auth.setSession(token, userData);
