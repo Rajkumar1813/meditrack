@@ -21,6 +21,9 @@ class RateLimiter
     public static function create(?array $redisConfig = null): self
     {
         $redisConfig = $redisConfig ?? require dirname(__DIR__, 2) . '/config/redis.php';
+        if (!($redisConfig['enabled'] ?? true) || empty($redisConfig['host']) || $redisConfig['host'] === 'null') {
+            return new self(null);
+        }
         try {
             $client = new RedisClient([
                 'scheme' => $redisConfig['scheme'] ?? 'tcp',

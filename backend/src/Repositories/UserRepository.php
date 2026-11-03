@@ -20,6 +20,11 @@ class UserRepository
         return $this->db->fetchOne('SELECT * FROM users WHERE id = ? AND deleted_at IS NULL', [$id]);
     }
 
+    public function findByAuthgearId(string $authgearUserId): ?array
+    {
+        return $this->db->fetchOne('SELECT * FROM users WHERE authgear_user_id = ? AND deleted_at IS NULL', [$authgearUserId]);
+    }
+
     public function findByPhone(string $phone): ?array
     {
         return $this->db->fetchOne('SELECT * FROM users WHERE phone = ? AND deleted_at IS NULL', [$phone]);
@@ -56,10 +61,8 @@ class UserRepository
 
     public function create(array $data): int
     {
-        $sql = 'INSERT INTO users (name, phone, email, role, locale, is_blocked, pharmacist_reg_no, phone_verified_at, email_verified_at, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
-
-        $this->db->execute($sql, [
+        $fields = ['name', 'phone', 'email', 'role', 'locale', 'is_blocked', 'pharmacist_reg_no', 'phone_verified_at', 'email_verified_at'];
+        $values = [
             $data['name'] ?? null,
             $data['phone'] ?? null,
             $data['email'] ?? null,
@@ -69,8 +72,18 @@ class UserRepository
             $data['pharmacist_reg_no'] ?? null,
             $data['phone_verified_at'] ?? null,
             $data['email_verified_at'] ?? null,
-        ]);
+        ];
 
+        if (array_key_exists('authgear_user_id', $data) && $data['authgear_user_id'] !== null) {
+            array_unshift($fields, 'authgear_user_id');
+            array_unshift($values, $data['authgear_user_id']);
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($fields), '?'));
+        $fieldNames = implode(', ', $fields);
+        $sql = "INSERT INTO users ({$fieldNames}, created_at, updated_at) VALUES ({$placeholders}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+
+        $this->db->execute($sql, $values);
         return (int)$this->db->lastInsertId();
     }
 

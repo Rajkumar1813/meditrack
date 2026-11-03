@@ -22,6 +22,7 @@ backend/.env.*
 
 # Application Storage & Generated Outputs
 /backend/storage/logs/*.log
+/backend/storage/framework/cache/*
 /backend/storage/invoices/*.pdf
 /backend/storage/prescriptions/*
 !/backend/storage/prescriptions/.gitkeep

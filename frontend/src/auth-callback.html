@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- @include partials/head.html -->
+  <title>Verifying Session | <!-- @title --></title>
+</head>
+<body class="bg-canvas-light dark:bg-canvas-dark text-slate-800 dark:text-slate-100 min-h-screen flex flex-col items-center justify-center p-6 font-sans">
+  <div class="max-w-md w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 rounded-3xl p-8 shadow-2xl text-center card-3d">
+    <div class="inline-flex p-4 rounded-2xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 mb-4 animate-bounce">
+      <svg class="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+    <h2 id="callback-status-title" class="text-xl font-bold text-slate-900 dark:text-white mb-2">Authenticating with Authgear</h2>
+    <p id="callback-status-desc" class="text-xs text-slate-500 dark:text-slate-400">Verifying your secure OTP token and syncing profile...</p>
+    
+    <div id="callback-error-box" class="hidden mt-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-2xl text-xs text-red-700 dark:text-red-300">
+      <p id="callback-error-message"></p>
+      <a href="/login.html" class="inline-block mt-3 px-4 py-2 bg-primary-600 text-white font-semibold rounded-xl text-xs hover:bg-primary-700 transition">Return to Login</a>
+    </div>
+  </div>
+
+  <script type="module" src="/js/store/auth-callback.js"></script>
+</body>
+</html>

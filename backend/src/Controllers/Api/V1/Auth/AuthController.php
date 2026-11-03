@@ -12,16 +12,59 @@ use MediTrack\Core\Exceptions\ValidationException;
 use MediTrack\Core\Exceptions\UnauthorizedException;
 use MediTrack\Services\OtpService;
 use MediTrack\Services\AuthService;
+use MediTrack\Services\AuthgearService;
 
 class AuthController
 {
     private OtpService $otpService;
     private AuthService $authService;
+    private ?AuthgearService $authgearService;
 
-    public function __construct(OtpService $otpService, AuthService $authService)
+    public function __construct(OtpService $otpService, AuthService $authService, ?AuthgearService $authgearService = null)
     {
         $this->otpService = $otpService;
         $this->authService = $authService;
+        $this->authgearService = $authgearService;
+    }
+
+    /**
+     * POST /api/v1/auth/authgear/sync
+     */
+    public function syncAuthgear(Request $request): Response
+    {
+        if ($this->authgearService === null) {
+            throw new \RuntimeException('Authgear service not configured.');
+        }
+
+        $authHeader = $request->header('authorization');
+        $token = null;
+        if ($authHeader && preg_match('/Bearer\s+(\S+)/i', $authHeader, $matches)) {
+            $token = $matches[1];
+        }
+
+        $input = $request->getBody();
+        if (!$token && !empty($input['access_token'])) {
+            $token = (string)$input['access_token'];
+        }
+
+        if (!$token) {
+            throw new UnauthorizedException('Authentication token required.', 'UNAUTHORIZED');
+        }
+
+        $claims = $this->authgearService->verifyToken($token);
+        $user = $this->authgearService->syncUserFromClaims($claims, $token);
+
+        if ((int)$user['is_blocked'] === 1) {
+            throw new \MediTrack\Core\Exceptions\ForbiddenException(
+                'Your account has been blocked. Please contact support.',
+                'ACCOUNT_BLOCKED'
+            );
+        }
+
+        return ApiResponse::success([
+            'user' => $this->authService->sanitizeUser($user),
+            'authgear_user_id' => $user['authgear_user_id'] ?? $claims['sub'],
+        ], 200, [], 'User synced successfully.');
     }
 
     /**

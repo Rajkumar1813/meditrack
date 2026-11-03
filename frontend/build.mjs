@@ -47,7 +47,15 @@ if (fs.existsSync(LANG_SRC)) {
 }
 
 // 5. Copy JavaScript Assets
-console.log('Copying JavaScript modules...');
+console.log('Copying JavaScript modules and vendor bundles...');
+const authgearDist = path.join(__dirname, 'node_modules', '@authgear', 'web', 'dist');
+const vendorDest = path.join(SRC_DIR, 'js', 'vendor');
+if (fs.existsSync(authgearDist)) {
+  fs.mkdirSync(vendorDest, { recursive: true });
+  fs.copyFileSync(path.join(authgearDist, 'authgear-web.module.js'), path.join(vendorDest, 'authgear.esm.js'));
+  fs.copyFileSync(path.join(authgearDist, 'authgear-web.iife.js'), path.join(vendorDest, 'authgear.iife.js'));
+}
+
 function copyRecursive(src, dest) {
   if (!fs.existsSync(src)) return;
   fs.mkdirSync(dest, { recursive: true });

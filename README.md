@@ -104,32 +104,39 @@ node brand/sync.mjs
 ## 🔄 Core Workflows
 
 ### 1. Authentication & Session Rotation
-MediTrack uses a passwordless Phone/Email OTP system with automated refresh token rotation and reuse detection.
+MediTrack uses **Authgear** for passwordless Phone/Email OTP authentication with OIDC/PKCE flow, automated silent refresh, and RS256 JWKS signature verification on the backend.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Customer as User / Client
-    participant Auth as Auth API
-    participant Cache as Redis
+    actor Customer as User / Browser
+    participant Authgear as Authgear Cloud (OIDC/PKCE)
+    participant Backend as MediTrack PHP Backend
     participant DB as MySQL DB
 
-    Customer->>Auth: POST /api/v1/auth/otp/request {identifier: "phone/email"}
-    Auth->>Cache: Check Rate Limit (3 req/min)
-    Auth->>DB: Store Bcrypt OTP Hash (expires in 5 min)
-    Auth-->>Customer: 200 OK (OTP Sent via SMS/Email)
-
-    Customer->>Auth: POST /api/v1/auth/otp/verify {identifier, code}
-    Auth->>DB: Verify Code with hash_equals()
-    Auth->>DB: Create Refresh Token (SHA-256 hash)
-    Auth-->>Customer: 200 OK with Access Token (15 min) + Refresh Cookie (Web: HttpOnly)
-
-    Note over Customer,Auth: On Token Expiry (Automatic Rotation)
-    Customer->>Auth: POST /api/v1/auth/refresh
-    Auth->>DB: Find token_hash. If revoked -> REVOKE ALL SESSIONS (Theft Detected!)
-    Auth->>DB: Revoke old token & issue new pair
-    Auth-->>Customer: New Access Token + New Refresh Token
+    Customer->>Authgear: OIDC Auth Request (Phone / Email OTP)
+    Authgear-->>Customer: OTP Challenge & Verification (SMS/Email)
+    Authgear->>Customer: Redirect to /auth-callback.html?code=...
+    Customer->>Authgear: Exchange Code with PKCE for Access Token
+    Customer->>Backend: POST /api/v1/auth/authgear/sync (Bearer JWT)
+    Backend->>Backend: Verify RS256 signature using Authgear JWKS
+    Backend->>DB: Link or Auto-provision user (users.authgear_user_id)
+    Backend-->>Customer: 200 OK with User Profile & Role
 ```
+
+#### Authgear Setup & Configuration
+1. **Portal Project**: Create a project at [portal.authgear.com](https://portal.authgear.com).
+2. **Application**: Under **Applications**, add a **Single Page Application (SPA)**:
+   - **Authorized Redirect URIs**: `http://localhost:5173/auth-callback.html`
+   - **Post-Logout Redirect URIs**: `http://localhost:5173/login.html`
+3. **Login Methods**: Under **Authentication** → **Login Methods**, enable **Phone (SMS OTP)** and/or **Email (Email OTP)**.
+4. **Environment Variables**: Add your project credentials to `backend/.env`:
+   ```env
+   AUTHGEAR_ENDPOINT=https://<your-project>.authgear.cloud
+   AUTHGEAR_CLIENT_ID=<your-client-id>
+   AUTHGEAR_REDIRECT_URI=http://localhost:5173/auth-callback.html
+   ```
+5. **Backend Verification**: The backend dynamically fetches and caches the JWKS from `${AUTHGEAR_ENDPOINT}/oauth2/jwks` using `firebase/php-jwt`, verifying token issuer (`iss`), client ID (`aud`), and expiration (`exp`). Users are mapped or provisioned into the `users` table via `authgear_user_id`.
 
 ---
 
@@ -245,11 +252,10 @@ flowchart TD
 ### 🔑 Authentication & Profile
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
-| `POST` | `/api/v1/auth/otp/request` | Request 6-digit OTP via SMS or Email | No (Rate-limited) |
-| `POST` | `/api/v1/auth/otp/verify` | Verify OTP & receive JWT access + refresh tokens | No (Fail-closed) |
+| `POST` | `/api/v1/auth/authgear/sync` | Verify Authgear JWT via JWKS & sync/provision user | Bearer Token |
 | `POST` | `/api/v1/auth/refresh` | Rotate refresh token & issue new access token | Cookie / Bearer |
 | `POST` | `/api/v1/auth/logout` | Revoke current refresh token session | Bearer |
-| `GET` | `/api/v1/auth/me` | Current authenticated user profile | Bearer |
+| `GET` | `/api/v1/me` | Current authenticated user profile | Bearer |
 
 ### 🏬 Catalog & Search
 | Method | Endpoint | Description | Auth Required |
