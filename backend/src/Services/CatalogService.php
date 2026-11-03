@@ -163,7 +163,17 @@ class CatalogService
     public function getSuggestions(string $query): array
     {
         $clean = trim($query);
+        // Strip accidental file extensions and normalize separators
+        $clean = preg_replace('/\.(html?|php|jsx?|tsx?|css|json|sql|log)$/i', '', $clean);
+        $clean = trim(preg_replace('/[-_.]+/', ' ', $clean));
+
         if (mb_strlen($clean) < 2) {
+            return [];
+        }
+
+        // Prevent querying internal directory or system terms
+        $internalTokens = ['config', 'includes', 'api', 'vendor', 'backend', 'storage', 'tests', 'infra', 'partials', 'scripts', '.env', 'database', 'bin'];
+        if (in_array(strtolower($clean), $internalTokens, true)) {
             return [];
         }
 

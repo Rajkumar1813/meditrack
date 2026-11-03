@@ -1,0 +1,27 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 1. Block access to internal and sensitive directories/files
+    RewriteRule ^(config|includes|api/private|vendor|backend|storage|tests|infra|partials|scripts|\.git|\.env|database|bin)/ - [F,L,NC]
+    RewriteRule \.(env|sql|log|ini|yml|yaml|sh|bat|bak)$ - [F,L,NC]
+
+    # 2. 301 Redirect .html requests to clean URL (e.g. /catalog.html -> /catalog)
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+(.*?)\.html([^\s]*)\sHTTP [NC]
+    RewriteRule ^ /%1%2 [R=301,L,NE]
+
+    # 3. 301 Redirect .php requests to clean URL (e.g. /catalog.php -> /catalog)
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+(.*?)\.php([^\s]*)\sHTTP [NC]
+    RewriteRule ^ /%1%2 [R=301,L,NE]
+
+    # 4. Resolve clean URL to existing .html file (e.g. /catalog -> /catalog.html)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME}.html -f
+    RewriteRule ^(.*)$ $1.html [L,QSA]
+
+    # 5. SPA fallback
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.html [L]
+</IfModule>

@@ -126,5 +126,10 @@ try {
   process.exit(1);
 }
 
+// Copy .htaccess if present
+if (fs.existsSync(path.join(SRC_DIR, '.htaccess'))) {
+  fs.copyFileSync(path.join(SRC_DIR, '.htaccess'), path.join(DIST_DIR, '.htaccess'));
+}
+
 console.log('Build completed successfully in dist/');
 

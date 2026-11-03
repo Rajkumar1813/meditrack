@@ -64,6 +64,30 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Block access to internal files and sensitive directories
+  const internalPrefixes = ['/config', '/includes', '/api/private', '/backend', '/storage', '/tests', '/.env', '/database', '/bin'];
+  if (internalPrefixes.some((prefix) => url.pathname.startsWith(prefix))) {
+    res.writeHead(403, { 'Content-Type': 'text/plain' });
+    res.end('Forbidden');
+    return;
+  }
+
+  // 301 Redirect .html to clean URL (e.g. /catalog.html -> /catalog)
+  if (url.pathname.endsWith('.html') && url.pathname !== '/index.html') {
+    const cleanPath = url.pathname.slice(0, -5);
+    res.writeHead(301, { Location: (cleanPath || '/') + url.search });
+    res.end();
+    return;
+  }
+
+  // 301 Redirect .php to clean URL (e.g. /catalog.php -> /catalog)
+  if (url.pathname.endsWith('.php')) {
+    const cleanPath = url.pathname.slice(0, -4);
+    res.writeHead(301, { Location: (cleanPath || '/') + url.search });
+    res.end();
+    return;
+  }
+
   // Serve static file
   let filePath = path.join(DIST_DIR, url.pathname === '/' ? 'index.html' : url.pathname);
 
