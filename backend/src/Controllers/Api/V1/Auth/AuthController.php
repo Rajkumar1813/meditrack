@@ -28,6 +28,28 @@ class AuthController
     }
 
     /**
+     * GET /api/v1/auth/config
+     */
+    public function config(Request $request): Response
+    {
+        $endpoint = rtrim($_ENV['AUTHGEAR_ENDPOINT'] ?? '', '/');
+        $clientId = $_ENV['AUTHGEAR_CLIENT_ID'] ?? '';
+        $redirectUri = $_ENV['AUTHGEAR_REDIRECT_URI'] ?? 'http://localhost:5173/auth-callback.html';
+
+        $isConfigured = !empty($endpoint)
+            && !empty($clientId)
+            && !str_contains($endpoint, 'your-project')
+            && !str_contains($endpoint, 'meditrack-dev');
+
+        return ApiResponse::success([
+            'authgear_endpoint' => $endpoint,
+            'authgear_client_id' => $clientId,
+            'authgear_redirect_uri' => $redirectUri,
+            'is_configured' => $isConfigured,
+        ]);
+    }
+
+    /**
      * POST /api/v1/auth/authgear/sync
      */
     public function syncAuthgear(Request $request): Response

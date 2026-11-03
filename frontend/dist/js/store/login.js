@@ -78,6 +78,9 @@ export function initLoginPage() {
           errorBox.classList.remove('hidden');
           errorBox.textContent = err.message || 'Unable to connect to Authgear. Please verify internet connection.';
         }
+        if (devLoginPanel) {
+          devLoginPanel.classList.remove('hidden');
+        }
       }
     });
   }

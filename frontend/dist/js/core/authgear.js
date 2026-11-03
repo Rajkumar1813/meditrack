@@ -7,13 +7,35 @@ let configurePromise = null;
 
 export const authgearClient = {
   /**
-   * Initialize and configure Authgear Web SDK
+   * Initialize and configure Authgear Web SDK with backend dynamic synchronization
    */
   async init() {
     if (configured) return;
     if (configurePromise) return configurePromise;
 
     configurePromise = (async () => {
+      // 1. Fetch live config from backend/.env so frontend is always in sync
+      try {
+        const resp = await api.get('/auth/config');
+        if (resp?.data) {
+          if (resp.data.authgear_endpoint) {
+            CONFIG.AUTHGEAR_ENDPOINT = resp.data.authgear_endpoint;
+          }
+          if (resp.data.authgear_client_id) {
+            CONFIG.AUTHGEAR_CLIENT_ID = resp.data.authgear_client_id;
+          }
+          if (resp.data.authgear_redirect_uri) {
+            CONFIG.AUTHGEAR_REDIRECT_URI = resp.data.authgear_redirect_uri;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not fetch /api/v1/auth/config, using default CONFIG:', e);
+      }
+
+      if (!CONFIG.AUTHGEAR_ENDPOINT || CONFIG.AUTHGEAR_ENDPOINT.includes('your-project')) {
+        throw new Error('Authgear is not configured yet. Please update AUTHGEAR_ENDPOINT in backend/.env');
+      }
+
       try {
         await authgear.configure({
           endpoint: CONFIG.AUTHGEAR_ENDPOINT,
@@ -22,7 +44,13 @@ export const authgearClient = {
         });
         configured = true;
       } catch (err) {
-        console.warn('Authgear configuration warning:', err);
+        console.warn('Authgear configure error:', err);
+        const msg = err.message || String(err);
+        if (msg.includes('Failed to fetch')) {
+          throw new Error(
+            `Could not connect to Authgear at "${CONFIG.AUTHGEAR_ENDPOINT}". In Authgear Portal, ensure "http://localhost:5173/auth-callback" is added to Authorized Redirect URIs.`
+          );
+        }
         throw err;
       }
     })();
@@ -34,13 +62,7 @@ export const authgearClient = {
    * Start OIDC/PKCE Passwordless OTP Authentication flow
    */
   async login(returnUrl) {
-    try {
-      await this.init();
-    } catch (err) {
-      throw new Error(
-        `Unable to connect to Authgear endpoint (${CONFIG.AUTHGEAR_ENDPOINT}). Please verify your AUTHGEAR_ENDPOINT and AUTHGEAR_CLIENT_ID in .env, or use Developer Login below.`
-      );
-    }
+    await this.init();
 
     let redirectURI = CONFIG.AUTHGEAR_REDIRECT_URI;
     if (returnUrl) {
@@ -51,7 +73,6 @@ export const authgearClient = {
       } catch (_) {}
     }
 
-    // Call startAuthentication (Authgear Web SDK v6 standard method)
     if (typeof authgear.startAuthentication === 'function') {
       await authgear.startAuthentication({
         redirectURI,
@@ -63,7 +84,7 @@ export const authgearClient = {
         prompt: 'login',
       });
     } else {
-      throw new Error('Authgear authentication method not found on SDK container.');
+      throw new Error('Authgear startAuthentication method not found.');
     }
   },
 
@@ -79,7 +100,7 @@ export const authgearClient = {
     } else if (typeof authgear.finishAuthorization === 'function') {
       authResult = await authgear.finishAuthorization();
     } else {
-      throw new Error('Authgear finishAuthentication method not found on SDK container.');
+      throw new Error('Authgear finishAuthentication method not found.');
     }
 
     const userInfo = authResult?.userInfo || authResult;
@@ -151,7 +172,7 @@ export const authgearClient = {
   /**
    * Logout user from Authgear session
    */
-  async logout(redirectURI = `${window.location.origin}/login.html`) {
+  async logout(redirectURI = `${window.location.origin}/login`) {
     try {
       await this.init();
       await authgear.logout({ redirectURI });

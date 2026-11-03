@@ -66,6 +66,7 @@ $router->group([
     $r->get('/brand', [BrandController::class, 'show']);
 
     // Authentication (Authgear OIDC & Sessions)
+    $r->get('/auth/config', [AuthController::class, 'config']);
     $r->post('/auth/authgear/sync', [AuthController::class, 'syncAuthgear']);
     $r->post('/auth/otp/request', [AuthController::class, 'requestOtp'], [new RateLimit('otp_request')]);
     $r->post('/auth/otp/verify', [AuthController::class, 'verifyOtp'], [new RateLimit('otp_verify')]);
