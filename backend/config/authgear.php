@@ -8,3 +8,4 @@ return [
     'redirect_uri' => $_ENV['AUTHGEAR_REDIRECT_URI'] ?? 'http://localhost:5173/auth-callback',
     'jwks_cache_ttl' => (int)($_ENV['AUTHGEAR_JWKS_CACHE_TTL'] ?? 86400), // 24 hours
 ];
+

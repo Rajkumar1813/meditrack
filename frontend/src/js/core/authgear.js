@@ -23,6 +23,7 @@ export const authgearClient = {
         configured = true;
       } catch (err) {
         console.warn('Authgear configuration warning:', err);
+        throw err;
       }
     })();
 
@@ -30,22 +31,40 @@ export const authgearClient = {
   },
 
   /**
-   * Start OIDC/PKCE Passwordless OTP Authorization flow
+   * Start OIDC/PKCE Passwordless OTP Authentication flow
    */
   async login(returnUrl) {
-    await this.init();
+    try {
+      await this.init();
+    } catch (err) {
+      throw new Error(
+        `Unable to connect to Authgear endpoint (${CONFIG.AUTHGEAR_ENDPOINT}). Please verify your AUTHGEAR_ENDPOINT and AUTHGEAR_CLIENT_ID in .env, or use Developer Login below.`
+      );
+    }
 
     let redirectURI = CONFIG.AUTHGEAR_REDIRECT_URI;
     if (returnUrl) {
-      const url = new URL(redirectURI, window.location.origin);
-      url.searchParams.set('returnUrl', returnUrl);
-      redirectURI = url.toString();
+      try {
+        const url = new URL(redirectURI, window.location.origin);
+        url.searchParams.set('returnUrl', returnUrl);
+        redirectURI = url.toString();
+      } catch (_) {}
     }
 
-    await authgear.startAuthorization({
-      redirectURI,
-      prompt: 'login',
-    });
+    // Call startAuthentication (Authgear Web SDK v6 standard method)
+    if (typeof authgear.startAuthentication === 'function') {
+      await authgear.startAuthentication({
+        redirectURI,
+        prompt: 'login',
+      });
+    } else if (typeof authgear.startAuthorization === 'function') {
+      await authgear.startAuthorization({
+        redirectURI,
+        prompt: 'login',
+      });
+    } else {
+      throw new Error('Authgear authentication method not found on SDK container.');
+    }
   },
 
   /**
@@ -53,7 +72,17 @@ export const authgearClient = {
    */
   async handleCallback() {
     await this.init();
-    const userInfo = await authgear.finishAuthorization();
+
+    let authResult;
+    if (typeof authgear.finishAuthentication === 'function') {
+      authResult = await authgear.finishAuthentication();
+    } else if (typeof authgear.finishAuthorization === 'function') {
+      authResult = await authgear.finishAuthorization();
+    } else {
+      throw new Error('Authgear finishAuthentication method not found on SDK container.');
+    }
+
+    const userInfo = authResult?.userInfo || authResult;
     const accessToken = authgear.accessToken;
 
     let backendUser = null;
@@ -87,12 +116,11 @@ export const authgearClient = {
    * Get valid access token, auto-refreshing if expired
    */
   async getAccessToken() {
-    await this.init();
-    if (authgear.sessionState !== SessionState.AUTHENTICATED) {
-      return null;
-    }
-
     try {
+      await this.init();
+      if (authgear.sessionState !== SessionState.AUTHENTICATED) {
+        return null;
+      }
       await authgear.refreshAccessTokenIfNeeded();
       return authgear.accessToken;
     } catch (_) {
@@ -111,14 +139,12 @@ export const authgearClient = {
    * Fetch authenticated user info from Authgear
    */
   async fetchUserInfo() {
-    await this.init();
-    if (this.isAuthenticated()) {
-      try {
+    try {
+      await this.init();
+      if (this.isAuthenticated()) {
         return await authgear.fetchUserInfo();
-      } catch (_) {
-        return null;
       }
-    }
+    } catch (_) {}
     return null;
   },
 
@@ -126,8 +152,8 @@ export const authgearClient = {
    * Logout user from Authgear session
    */
   async logout(redirectURI = `${window.location.origin}/login.html`) {
-    await this.init();
     try {
+      await this.init();
       await authgear.logout({ redirectURI });
     } catch (_) {
       window.location.href = redirectURI;

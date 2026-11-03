@@ -21,3 +21,4 @@ describe('Authgear Configuration & Client Module', () => {
     assert.strictEqual(url.pathname, '/auth-callback.html');
   });
 });
+

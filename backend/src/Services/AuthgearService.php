@@ -263,3 +263,4 @@ class AuthgearService
         return $this->userRepo->findById($newUserId);
     }
 }
+
